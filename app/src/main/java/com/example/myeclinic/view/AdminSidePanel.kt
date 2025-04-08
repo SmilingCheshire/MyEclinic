@@ -1,4 +1,4 @@
-package com.example.myeclinic.presenter
+package com.example.myeclinic.view
 
 import android.content.Context
 import android.util.AttributeSet

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/specializationOptionsLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:id="@+id/text_specialization"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Specialization"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:paddingBottom="20dp"/>
+
+    <Button
+        android:id="@+id/button_quick_assessment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Quick Assessment"
+        android:layout_marginBottom="16dp" />
+
+    <Button
+        android:id="@+id/button_choose_doctor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Choose Doctor" />
+</LinearLayout>

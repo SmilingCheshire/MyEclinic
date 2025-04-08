@@ -2,10 +2,7 @@ package com.example.myeclinic.view
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myeclinic.R
 import com.example.myeclinic.presenter.RegistrationPresenter
@@ -18,17 +15,18 @@ class Registration : AppCompatActivity(), RegistrationView {
     private lateinit var etPassword: EditText
     private lateinit var etRepeatPassword: EditText
     private lateinit var etUsername: EditText
+    private lateinit var etContactNumber: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registration)
 
         presenter = RegistrationPresenter(this)
-
         etUsername = findViewById(R.id.etUsername)
         etEmail = findViewById(R.id.etEmail)
         etPassword = findViewById(R.id.etPassword)
         etRepeatPassword = findViewById(R.id.etRepeatPassword)
+        etContactNumber = findViewById(R.id.etContactNumber)
 
         val btnRegister = findViewById<Button>(R.id.btnRegister)
         btnRegister.setOnClickListener {
@@ -36,8 +34,9 @@ class Registration : AppCompatActivity(), RegistrationView {
             val email = etEmail.text.toString().trim()
             val password = etPassword.text.toString().trim()
             val repeatPassword = etRepeatPassword.text.toString().trim()
+            val contactNumber = etContactNumber.text.toString().trim()
 
-            presenter.handleRegistration(email, password, repeatPassword, username)
+            presenter.handleRegistration(email, password, repeatPassword, username, contactNumber)
         }
 
         val tvLogin = findViewById<TextView>(R.id.tvLogin)
@@ -51,9 +50,8 @@ class Registration : AppCompatActivity(), RegistrationView {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
-    override fun navigateToLobby() {
-        val intent = Intent(this, SpecializationActivity::class.java)
-        startActivity(intent)
+    override fun navigateToPatientDashboard() {
+        startActivity(Intent(this, PatientSpecializationActivity::class.java))
         finish()
     }
 }

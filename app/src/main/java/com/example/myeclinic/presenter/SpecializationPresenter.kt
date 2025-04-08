@@ -1,32 +1,39 @@
 package com.example.myeclinic.presenter
 
-import com.example.myeclinic.model.Specialization
-import com.example.myeclinic.view.SpecializationView
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.firestore.FirebaseFirestore
 
 class SpecializationPresenter(private val view: SpecializationView) {
-    private val database = FirebaseDatabase.getInstance().reference.child("specializations")
+
+    private val db = FirebaseFirestore.getInstance()
+    private val specializationsRef = db.collection("specializations")
 
     fun loadSpecializations() {
-        database.get().addOnSuccessListener { snapshot ->
-            val specializations = snapshot.children.mapNotNull { it.getValue(Specialization::class.java) }
+        specializationsRef.get().addOnSuccessListener { result ->
+            val specializations = result.documents.map { it.getString("name") ?: "" }
             view.showSpecializations(specializations)
-        }.addOnFailureListener {
-            view.showError("Failed to load specializations")
         }
     }
 
     fun addSpecialization(name: String) {
-        val id = database.push().key ?: return
-        val specialization = Specialization(id, name)
-        database.child(id).setValue(specialization)
-            .addOnSuccessListener { view.showMessage("Specialization added") }
-            .addOnFailureListener { view.showError("Failed to add specialization") }
+        val specialization = hashMapOf("name" to name)
+        specializationsRef.add(specialization).addOnSuccessListener {
+            view.onSpecializationAdded()
+        }
     }
 
-    fun deleteSpecialization(id: String) {
-        database.child(id).removeValue()
-            .addOnSuccessListener { view.showMessage("Specialization deleted") }
-            .addOnFailureListener { view.showError("Failed to delete specialization") }
+    fun removeSpecialization(name: String) {
+        specializationsRef.whereEqualTo("name", name).get().addOnSuccessListener { result ->
+            for (document in result) {
+                specializationsRef.document(document.id).delete().addOnSuccessListener {
+                    view.onSpecializationRemoved()
+                }
+            }
+        }
     }
+}
+
+interface SpecializationView {
+    fun showSpecializations(specializations: List<String>)
+    fun onSpecializationAdded()
+    fun onSpecializationRemoved()
 }

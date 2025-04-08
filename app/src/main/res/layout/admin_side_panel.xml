@@ -10,7 +10,7 @@
         android:id="@+id/openSidePanelButton"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:background="?attr/selectableItemBackground"
+        android:background="@android:drawable/ic_menu_agenda"
         android:src="@android:drawable/ic_menu_more"
         android:visibility="gone"
         android:layout_gravity="end|top"

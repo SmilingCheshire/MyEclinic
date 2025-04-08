@@ -13,14 +13,29 @@
         android:theme="@style/Theme.MyEclinic"
         tools:targetApi="31">
         <activity
-            android:name=".view.SpecializationActivity"
+            android:name=".view.QuickAssessmentActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.SpecializationOptionsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.AdminSpecializationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.DoctorListActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.DoctorActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.PatientSpecializationActivity"
             android:exported="false" />
         <activity
             android:name=".view.Registration"
             android:exported="false" />
         <activity
             android:name=".view.LogIn"
-            android:exported="true" >
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
