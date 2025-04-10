@@ -13,6 +13,7 @@ class PatientSpecializationActivity : AppCompatActivity(), SpecializationView {
 
     private lateinit var presenter: SpecializationPresenter
     private lateinit var listView: ListView
+    private val role = "Patient"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,8 +25,9 @@ class PatientSpecializationActivity : AppCompatActivity(), SpecializationView {
 
         listView.setOnItemClickListener { _, _, position, _ ->
             val selectedSpecialization = listView.adapter.getItem(position) as String
-            val intent = Intent(this, DoctorListActivity::class.java)
+            val intent = Intent(this, SpecializationOptionsActivity::class.java)
             intent.putExtra("specialization", selectedSpecialization)
+            intent.putExtra("userRole", role)
             startActivity(intent)
         }
     }

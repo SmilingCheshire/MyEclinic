@@ -15,7 +15,8 @@ class SpecializationOptionsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_specialization_options)
 
-        // Get specialization passed from previous activity
+        // Get info passed from previous activity
+        val role = intent.getStringExtra("userRole")
         specialization = intent.getStringExtra("specialization") ?: "Unknown"
 
         val textSpecialization = findViewById<TextView>(R.id.text_specialization)
@@ -27,12 +28,14 @@ class SpecializationOptionsActivity : AppCompatActivity() {
         buttonQuickAssessment.setOnClickListener {
             val intent = Intent(this, QuickAssessmentActivity::class.java)
             intent.putExtra("specialization", specialization)
+            intent.putExtra("userRole", role)
             startActivity(intent)
         }
 
         buttonChooseDoctor.setOnClickListener {
             val intent = Intent(this, DoctorListActivity::class.java)
             intent.putExtra("specialization", specialization)
+            intent.putExtra("userRole", role)
             startActivity(intent)
         }
     }

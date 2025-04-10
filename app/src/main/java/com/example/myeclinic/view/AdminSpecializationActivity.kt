@@ -1,5 +1,6 @@
 package com.example.myeclinic.view
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
@@ -14,6 +15,7 @@ class AdminSpecializationActivity : AppCompatActivity(), SpecializationView {
     private lateinit var etSpecialization: EditText
     private lateinit var btnAdd: Button
     private lateinit var btnRemove: Button
+    private val role = "Admin"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,6 +28,14 @@ class AdminSpecializationActivity : AppCompatActivity(), SpecializationView {
 
         presenter = SpecializationPresenter(this)
         presenter.loadSpecializations()
+
+        listView.setOnItemClickListener { _, _, position, _ ->
+            val selectedSpecialization = listView.adapter.getItem(position) as String
+            val intent = Intent(this, SpecializationOptionsActivity::class.java)
+            intent.putExtra("specialization", selectedSpecialization)
+            intent.putExtra("userRole", role)
+            startActivity(intent)
+        }
 
         btnAdd.setOnClickListener {
             val specialization = etSpecialization.text.toString().trim()

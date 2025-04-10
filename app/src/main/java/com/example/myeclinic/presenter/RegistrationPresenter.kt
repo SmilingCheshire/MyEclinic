@@ -1,7 +1,10 @@
 package com.example.myeclinic.presenter
 
 import android.util.Patterns
+import com.example.myeclinic.model.Doctor
+import com.example.myeclinic.repository.DoctorRepository
 import com.example.myeclinic.repository.UserRepository
+import com.google.firebase.auth.FirebaseAuth
 
 class RegistrationPresenter(private val view: RegistrationView) {
     private val userRepository = UserRepository()
@@ -27,11 +30,16 @@ class RegistrationPresenter(private val view: RegistrationView) {
             view.showError("Passwords do not match!")
             return
         }
-
         val role = "Patient" // Patients only!
 
-        userRepository.registerUser(email, password, name, contactNumber, role) { success, errorMessage ->
-        if (success) {
+        userRepository.registerUser(
+            email,
+            password,
+            name,
+            contactNumber,
+            role
+        ) { success, errorMessage ->
+            if (success) {
                 view.navigateToPatientDashboard()
             } else {
                 view.showError(errorMessage ?: "Registration failed.")
