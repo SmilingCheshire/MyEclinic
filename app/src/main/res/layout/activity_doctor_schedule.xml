@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Date Navigation -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical|center_horizontal"
+        android:paddingBottom="8dp">
+
+        <ImageButton
+            android:id="@+id/btnPrevDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_media_previous"
+            android:background="@android:color/transparent"
+            android:contentDescription="Previous Day" />
+
+        <TextView
+            android:id="@+id/tvCurrentDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="02.05.2025\nFriday"
+            android:gravity="center"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:paddingHorizontal="16dp" />
+
+        <ImageButton
+            android:id="@+id/btnNextDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_media_next"
+            android:background="@android:color/transparent"
+            android:contentDescription="Next Day" />
+    </LinearLayout>
+
+    <!-- Timetable -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/layoutSchedule"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+    </ScrollView>
+</LinearLayout>

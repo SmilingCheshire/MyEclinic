@@ -50,22 +50,21 @@ class UserRepository {
                     database.collection("patients").document(userId).get()
                         .addOnSuccessListener { snapshot ->
                             if (snapshot.exists()) {
-                                val patient = snapshot.toObject(User::class.java)
+                                val patient = snapshot.toObject(User::class.java)?.copy(userId = snapshot.id)
                                 callback(true, patient, null)
                             } else {
                                 // If not found in "patients", check in "doctors"
                                 database.collection("doctors").document(userId).get()
                                     .addOnSuccessListener { doctorSnapshot ->
                                         if (doctorSnapshot.exists()) {
-                                            val doctor = doctorSnapshot.toObject(User::class.java)
+                                            val doctor = doctorSnapshot.toObject(User::class.java)?.copy(userId = doctorSnapshot.id)
                                             callback(true, doctor, null)
                                         } else {
                                             // If not found in "doctors", check in "admins"
                                             database.collection("admins").document(userId).get()
                                                 .addOnSuccessListener { adminSnapshot ->
                                                     if (adminSnapshot.exists()) {
-                                                        val admin =
-                                                            adminSnapshot.toObject(User::class.java)
+                                                        val admin = adminSnapshot.toObject(User::class.java)?.copy(userId = adminSnapshot.id)
                                                         callback(true, admin, null)
                                                     } else {
                                                         callback(false, null, "User not found in database.")

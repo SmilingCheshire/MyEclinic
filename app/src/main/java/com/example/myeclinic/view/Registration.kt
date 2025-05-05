@@ -51,7 +51,7 @@ class Registration : AppCompatActivity(), RegistrationView {
     }
 
     override fun navigateToPatientDashboard() {
-        startActivity(Intent(this, PatientSpecializationActivity::class.java))
+        startActivity(Intent(this, SpecializationActivity::class.java))
         finish()
     }
 }

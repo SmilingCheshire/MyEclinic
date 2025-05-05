@@ -47,7 +47,7 @@ class DoctorListActivity : AppCompatActivity(), DoctorView {
         doctorList.clear()
         doctorList.addAll(doctors)
         adapter.clear()
-        adapter.addAll(doctors.map { "${it.name} - ${it.specialty}" })
+        adapter.addAll(doctors.map { "${it.name}" })
         adapter.notifyDataSetChanged()
     }
 
@@ -55,3 +55,4 @@ class DoctorListActivity : AppCompatActivity(), DoctorView {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 }
+

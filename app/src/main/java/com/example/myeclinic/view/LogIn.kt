@@ -48,19 +48,20 @@ class LogIn : AppCompatActivity(), LogInView {
     }
 
     override fun navigateToDoctorDashboard() {
+        //startActivity(Intent(this, SpecializationActivity::class.java))
         startActivity(Intent(this, DoctorActivity::class.java))
         finish()
     }
 
     override fun navigateToPatientDashboard() {
         Log.d("Navigation", "Navigating to PatientSpecializationActivity")
-        startActivity(Intent(this, PatientSpecializationActivity::class.java))
+        startActivity(Intent(this, SpecializationActivity::class.java))
         finish()
     }
 
     override fun navigateToAdminDashboard() {
         Log.d("Navigation", "Navigating to AdminActivity")
-        startActivity(Intent(this, AdminSpecializationActivity::class.java))
+        startActivity(Intent(this, SpecializationActivity::class.java))
         finish()
     }
 
