@@ -11,7 +11,7 @@ class DoctorListPresenter(private val view: DoctorListActivity) {
         val normalizedSpecialization = specialization.lowercase()
 
         db.collection("doctors")
-            .whereEqualTo("specialty", normalizedSpecialization)
+            .whereEqualTo("specialization", normalizedSpecialization)
             .get()
             .addOnSuccessListener { result ->
                 val doctors = result.documents.mapNotNull { it.toObject(Doctor::class.java) }
