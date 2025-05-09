@@ -2,7 +2,11 @@ package com.example.myeclinic.presenter
 
 import com.example.myeclinic.model.Doctor
 import com.example.myeclinic.presenter.DoctorProfileView
+import com.example.myeclinic.util.UserSession
+import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.SetOptions
 
 class DoctorProfilePresenter(private val view: DoctorProfileView) {
 
@@ -70,9 +74,127 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
                 }
         }
     }
+
+    fun loadDoctorAvailability(doctorId: String) {
+
+        FirebaseFirestore.getInstance().collection("doctor_availability")
+            .document(doctorId)
+            .get()
+            .addOnSuccessListener { document ->
+                val availability = document.get("availability") as? Map<String, List<String>> ?: emptyMap()
+                view.showCalendarWithAvailability(availability)
+
+            }
+            .addOnFailureListener {
+                view.showError("Failed to load availability")
+            }
+    }
+
+
+    fun bookAppointment(doctorId: String, specialization: String, date: String, hour: String) {
+        val firestore = FirebaseFirestore.getInstance()
+        val user = UserSession.currentUser ?: run {
+            view.showError("User not logged in")
+            return
+        }
+
+        val appointmentRef = firestore.collection("appointments")
+            .document(date)
+            .collection(specialization)
+            .document(doctorId)
+
+        val availabilityRef = firestore.collection("doctor_availability")
+            .document(doctorId)
+
+        val bookingRef = firestore.collection("bookings").document()
+
+        firestore.runTransaction { transaction ->
+            // 🟢 First, perform all reads
+            val appointmentSnapshot = transaction.get(appointmentRef)
+            val availabilitySnapshot = transaction.get(availabilityRef)
+
+            val timeslots = appointmentSnapshot.get("timeslots") as? List<Map<String, Any>> ?: emptyList()
+            val updatedTimeslots = timeslots.map { slot ->
+                val mutableSlot = slot.toMutableMap()
+                if (mutableSlot["hour"] == hour) {
+                    if (mutableSlot["booked"] == true) {
+                        throw FirebaseFirestoreException("Time slot already booked", FirebaseFirestoreException.Code.ABORTED)
+                    }
+                    mutableSlot["booked"] = true
+                }
+                mutableSlot
+            }
+
+            val availabilityMap = availabilitySnapshot.get("availability") as? Map<String, List<String>> ?: emptyMap()
+            val updatedAvailability = availabilityMap.toMutableMap()
+            val dayAvailability = updatedAvailability[date]?.toMutableList() ?: mutableListOf()
+            dayAvailability.remove(hour)
+            if (dayAvailability.isEmpty()) {
+                updatedAvailability.remove(date)
+            } else {
+                updatedAvailability[date] = dayAvailability
+            }
+
+
+            transaction.set(appointmentRef, mapOf("timeslots" to updatedTimeslots), SetOptions.merge())
+            transaction.set(bookingRef, mapOf(
+                "doctorId" to doctorId,
+                "patientId" to user.userId,
+                "specialization" to specialization,
+                "date" to date,
+                "time" to hour,
+                "description" to "Appointment was booked by doctor search",
+                "status" to "booked",
+                "bookedAt" to Timestamp.now()
+            ))
+            transaction.set(availabilityRef, mapOf("availability" to updatedAvailability), SetOptions.merge())
+
+        }.addOnSuccessListener {
+            view.showMessage("Appointment booked successfully")
+        }.addOnFailureListener {
+            view.showError("Booking failed: ${it.message}")
+        }
+    }
+
+
+
+
+    fun loadTimeSlots(date: String, specialization: String, doctorId: String) {
+        if (specialization.isBlank()) {
+            view.showError("Specialization not provided")
+            return
+        }
+        FirebaseFirestore.getInstance()
+            .collection("appointments")
+            .document(date)
+            .collection(specialization)
+            .document(doctorId)
+            .get()
+            .addOnSuccessListener { document ->
+                val timeslots = document.get("timeslots") as? List<Map<String, Any>> ?: emptyList()
+                val availabilityMap = mutableMapOf<String, Boolean>()
+                val times = mutableListOf<String>()
+
+                for (slot in timeslots) {
+                    val hour = slot["hour"] as? String ?: continue
+                    val booked = slot["booked"] as? Boolean ?: true
+                    availabilityMap[hour] = !booked
+                    times.add(hour)
+                }
+
+                view.showTimeslotDialog(date, times.sorted(), availabilityMap)
+            }
+            .addOnFailureListener {
+                view.showError("Failed to load time slots")
+            }
+    }
+
 }
 
 interface DoctorProfileView {
     fun showDoctorInfo(doctor: Doctor)
     fun showError(message: String)
+    fun showMessage(message: String)
+    fun showCalendarWithAvailability(availability: Map<String, List<String>>)
+    fun showTimeslotDialog(date: String, timeslots: List<String>, availability: Map<String, Boolean>)
 }

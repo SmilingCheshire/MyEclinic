@@ -99,7 +99,11 @@ class QuickAssessmentPresenter(
 
         db.runTransaction { transaction ->
             val snapshot = transaction.get(timeslotDocRef)
+            val availabilityRef = db.collection("doctor_availability").document(doctorId)
+            val availabilitySnapshot = transaction.get(availabilityRef)
+
             val timeslots = snapshot.get("timeslots") as? List<Map<String, Any>> ?: emptyList()
+            val availabilityMap = availabilitySnapshot.get("availability") as? Map<String, List<String>> ?: emptyMap()
 
             val updatedTimeslots = timeslots.map {
                 if (it["hour"] == hour) {
@@ -111,6 +115,7 @@ class QuickAssessmentPresenter(
             }
 
             transaction.set(timeslotDocRef, mapOf("timeslots" to updatedTimeslots), SetOptions.merge())
+
             transaction.set(bookingRef, mapOf(
                 "doctorId" to doctorId,
                 "patientId" to user.userId,
@@ -120,6 +125,22 @@ class QuickAssessmentPresenter(
                 "status" to "booked",
                 "bookedAt" to Timestamp.now()
             ))
+
+            // Remove booked time from availability
+
+            val updatedAvailability = availabilityMap.toMutableMap()
+            val updatedSlots = updatedAvailability[date]?.toMutableList()
+            updatedSlots?.remove(hour)
+
+            if (updatedSlots != null) {
+                if (updatedSlots.isEmpty()) {
+                    updatedAvailability.remove(date)
+                } else {
+                    updatedAvailability[date] = updatedSlots
+                }
+            }
+
+            transaction.set(availabilityRef, mapOf("availability" to updatedAvailability), SetOptions.merge())
         }.addOnSuccessListener {
             view.showSuccessMessage()
         }.addOnFailureListener {

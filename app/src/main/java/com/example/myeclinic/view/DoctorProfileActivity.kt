@@ -1,8 +1,12 @@
 package com.example.myeclinic.view
 
+import android.app.DatePickerDialog
+import android.content.DialogInterface
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myeclinic.R
 import com.example.myeclinic.model.Doctor
@@ -31,6 +35,8 @@ class DoctorProfileActivity : AppCompatActivity(), DoctorProfileView {
     private val role = user?.role ?: "Patient"
     private val userId = user?.userId
 
+    lateinit var specialization: String
+
     private var doctorId: String? = null
     private var loadedDoctor: Doctor? = null
 
@@ -55,6 +61,7 @@ class DoctorProfileActivity : AppCompatActivity(), DoctorProfileView {
         btnRetire = findViewById(R.id.btn_retire)
 
         presenter = DoctorProfilePresenter(this)
+        specialization = intent.getStringExtra("specialization") ?: ""
 
         doctorId = intent.getStringExtra("doctorId")
         if (doctorId != null) {
@@ -82,7 +89,7 @@ class DoctorProfileActivity : AppCompatActivity(), DoctorProfileView {
         }
 
         btnAppointment.setOnClickListener {
-            Toast.makeText(this, "Booking feature coming soon", Toast.LENGTH_SHORT).show()
+            doctorId?.let { presenter.loadDoctorAvailability(it) }
         }
 
         btnChat.setOnClickListener {
@@ -147,6 +154,89 @@ class DoctorProfileActivity : AppCompatActivity(), DoctorProfileView {
 
     override fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun showCalendarWithAvailability(availability: Map<String, List<String>>) {
+        val calendarDialog = DatePickerDialog(this)
+        calendarDialog.setOnDateSetListener { _, year, month, day ->
+            val dateStr = String.format("%04d-%02d-%02d", year, month + 1, day)
+            if (availability[dateStr].isNullOrEmpty()) {
+                Toast.makeText(this, "No available slots on selected date", Toast.LENGTH_SHORT).show()
+            } else {
+                doctorId?.let { presenter.loadTimeSlots(dateStr, specialization, it) }
+            }
+        }
+
+        // Disable dates with empty hour lists
+        calendarDialog.datePicker.setOnDateChangedListener { _, y, m, d ->
+            val selected = String.format("%04d-%02d-%02d", y, m + 1, d)
+            if (availability[selected].isNullOrEmpty()) {
+                calendarDialog.getButton(DialogInterface.BUTTON_POSITIVE).isEnabled = false
+            } else {
+                calendarDialog.getButton(DialogInterface.BUTTON_POSITIVE).isEnabled = true
+            }
+        }
+
+        calendarDialog.show()
+    }
+
+    override fun showTimeslotDialog(date: String, timeslots: List<String>, availability: Map<String, Boolean>) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_date_popup, null)
+        val tvSelectedDate = dialogView.findViewById<TextView>(R.id.tvSelectedDate)
+        val layoutTimeslots = dialogView.findViewById<LinearLayout>(R.id.layoutTimeslots)
+        val btnBookAppointment = dialogView.findViewById<Button>(R.id.btnBookAppointment)
+
+        tvSelectedDate.text = date
+        btnBookAppointment.isEnabled = false
+
+        var selectedTime: String? = null
+        var selectedButton: Button? = null
+
+        layoutTimeslots.removeAllViews()
+
+        timeslots.forEach { time ->
+            val btn = Button(this).apply {
+                text = time
+                isAllCaps = false
+                isEnabled = availability[time] == true
+                if (!isEnabled) {
+                    setBackgroundColor(android.graphics.Color.RED)
+                }
+                setOnClickListener {
+                    selectedButton?.isEnabled = true
+                    selectedButton?.alpha = 1.0f
+
+                    selectedTime = time
+                    selectedButton = this
+
+                    this.isEnabled = false
+                    this.alpha = 0.5f
+
+                    btnBookAppointment.isEnabled = true
+                }
+            }
+            layoutTimeslots.addView(btn)
+        }
+
+        val dialog = android.app.AlertDialog.Builder(this).setView(dialogView).create()
+
+        btnBookAppointment.setOnClickListener {
+            val time = selectedTime
+            val docId = doctorId
+            if (time != null && docId != null) {
+                presenter.bookAppointment(docId, specialization, date, time)
+                dialog.dismiss()
+            } else {
+                showError("Please select a valid time.")
+            }
+        }
+
+        dialog.show()
+    }
+
+    override fun showMessage(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }
 
 }

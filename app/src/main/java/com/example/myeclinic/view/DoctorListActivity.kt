@@ -21,6 +21,7 @@ class DoctorListActivity : AppCompatActivity(), DoctorView {
     private lateinit var listView: ListView
     private lateinit var adapter: ArrayAdapter<String>
     private val doctorList = mutableListOf<Doctor>()
+    private lateinit var specialization: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +40,7 @@ class DoctorListActivity : AppCompatActivity(), DoctorView {
             val selectedDoctor = doctorList[position]
             val intent = Intent(this, DoctorProfileActivity::class.java)
             intent.putExtra("doctorId", selectedDoctor.doctorId)
+            intent.putExtra("specialization", specialization)
             startActivity(intent)
         }
     }

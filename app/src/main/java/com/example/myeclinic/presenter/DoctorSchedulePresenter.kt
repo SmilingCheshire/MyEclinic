@@ -25,6 +25,7 @@ class DoctorSchedulePresenter(
 
         val resultList = mutableListOf<AppointmentDay>()
         val fetchTasks = mutableListOf<com.google.android.gms.tasks.Task<DocumentSnapshot>>()
+        val availabilityMap = mutableMapOf<String, List<String>>() // date -> unbooked times
 
         for (day in workingDays) {
             val dateStr = day.toString()
@@ -45,14 +46,14 @@ class DoctorSchedulePresenter(
                     val day = workingDays[index]
                     val dateStr = day.toString()
 
+                    val timeSlots: List<Map<String, Any>>
                     if (doc.exists()) {
-                        val timeSlots = doc["timeslots"] as? List<Map<String, Any>> ?: emptyList()
-                        resultList.add(AppointmentDay(dateStr, timeSlots))
+                        timeSlots = doc["timeslots"] as? List<Map<String, Any>> ?: emptyList()
                     } else {
-                        val generated = ScheduleConstants.workingHours.map {
+                        timeSlots = ScheduleConstants.workingHours.map {
                             mapOf("hour" to it, "booked" to false)
                         }
-                        val newDoc = mapOf("timeslots" to generated)
+                        val newDoc = mapOf("timeslots" to timeSlots)
                         val setTask = firestore
                             .collection("appointments")
                             .document(dateStr)
@@ -60,22 +61,40 @@ class DoctorSchedulePresenter(
                             .document(doctorId)
                             .set(newDoc)
                         saveTasks.add(setTask)
-                        resultList.add(AppointmentDay(dateStr, generated))
                     }
+
+                    val availableHours = timeSlots
+                        .filter { it["booked"] == false }
+                        .mapNotNull { it["hour"] as? String }
+
+                    availabilityMap[dateStr] = availableHours
+                    resultList.add(AppointmentDay(dateStr, timeSlots))
                 }
+
+                // Push to doctor_availability collection
+                val availabilityTask = firestore
+                    .collection("doctor_availability")
+                    .document(doctorId)
+                    .set(mapOf("availability" to availabilityMap))
+
+                saveTasks.add(availabilityTask)
 
                 Tasks.whenAll(saveTasks)
                     .addOnSuccessListener {
                         onComplete(resultList.sortedBy { it.date })
                     }
                     .addOnFailureListener {
-                        onComplete(resultList.sortedBy { it.date }) // fallback
+                        // Log error for debugging
+                        it.printStackTrace()
+                        onComplete(resultList.sortedBy { it.date }) // fallback still provides partial UI
                     }
             }
             .addOnFailureListener {
-                onComplete(emptyList())
+                it.printStackTrace()
+                onComplete(emptyList()) // full failure case
             }
     }
+
 
     fun fetchBookingDetails(
         date: String,
