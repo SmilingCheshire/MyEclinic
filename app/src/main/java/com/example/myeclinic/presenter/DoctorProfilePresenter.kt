@@ -98,66 +98,88 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
             return
         }
 
-        val appointmentRef = firestore.collection("appointments")
-            .document(date)
-            .collection(specialization)
-            .document(doctorId)
-
-        val availabilityRef = firestore.collection("doctor_availability")
-            .document(doctorId)
-
-        val bookingRef = firestore.collection("bookings").document()
-
-        firestore.runTransaction { transaction ->
-            // 🟢 First, perform all reads
-            val appointmentSnapshot = transaction.get(appointmentRef)
-            val availabilitySnapshot = transaction.get(availabilityRef)
-
-            val timeslots = appointmentSnapshot.get("timeslots") as? List<Map<String, Any>> ?: emptyList()
-            val updatedTimeslots = timeslots.map { slot ->
-                val mutableSlot = slot.toMutableMap()
-                if (mutableSlot["hour"] == hour) {
-                    if (mutableSlot["booked"] == true) {
-                        throw FirebaseFirestoreException("Time slot already booked", FirebaseFirestoreException.Code.ABORTED)
-                    }
-                    mutableSlot["booked"] = true
+        firestore.collection("doctors").document(doctorId).get()
+            .addOnSuccessListener { doctorSnapshot ->
+                if (!doctorSnapshot.exists()) {
+                    view.showError("Doctor not found")
+                    return@addOnSuccessListener
                 }
-                mutableSlot
+                val doctorName = doctorSnapshot.getString("name") ?: ""
+                val appointmentRef = firestore.collection("appointments")
+                    .document(date)
+                    .collection(specialization)
+                    .document(doctorId)
+
+                val availabilityRef = firestore.collection("doctor_availability")
+                    .document(doctorId)
+
+                val bookingId = firestore.collection("bookings").document().id
+
+                val bookingData = mapOf(
+                    "doctorId" to doctorId,
+                    "doctorName" to doctorName,
+                    "patientId" to user.userId,
+                    "patientName" to user.name,
+                    "specialization" to specialization,
+                    "date" to date,
+                    "time" to hour,
+                    "description" to "Appointment was booked by doctor search",
+                    "status" to "booked",
+                    "bookedAt" to Timestamp.now()
+                )
+
+                val bookingRef = firestore.collection("bookings").document(bookingId)
+                val doctorBookingRef = firestore.collection("doctors").document(doctorId)
+                    .collection("bookings").document(bookingId)
+                val patientBookingRef = firestore.collection("patients").document(user.userId)
+                    .collection("bookings").document(bookingId)
+
+                firestore.runTransaction { transaction ->
+                    val appointmentSnapshot = transaction.get(appointmentRef)
+                    val availabilitySnapshot = transaction.get(availabilityRef)
+
+                    val timeslots = appointmentSnapshot.get("timeslots") as? List<Map<String, Any>> ?: emptyList()
+                    val updatedTimeslots = timeslots.map { slot ->
+                        val mutableSlot = slot.toMutableMap()
+                        if (mutableSlot["hour"] == hour) {
+                            if (mutableSlot["booked"] == true) {
+                                throw FirebaseFirestoreException(
+                                    "Time slot already booked",
+                                    FirebaseFirestoreException.Code.ABORTED
+                                )
+                            }
+                            mutableSlot["booked"] = true
+                        }
+                        mutableSlot
+                    }
+
+                    val availabilityMap =
+                        availabilitySnapshot.get("availability") as? Map<String, List<String>> ?: emptyMap()
+                    val updatedAvailability = availabilityMap.toMutableMap()
+                    val dayAvailability = updatedAvailability[date]?.toMutableList() ?: mutableListOf()
+                    dayAvailability.remove(hour)
+                    if (dayAvailability.isEmpty()) {
+                        updatedAvailability.remove(date)
+                    } else {
+                        updatedAvailability[date] = dayAvailability
+                    }
+
+                    // Update time slot and availability
+                    transaction.set(appointmentRef, mapOf("timeslots" to updatedTimeslots), SetOptions.merge())
+                    transaction.set(availabilityRef, mapOf("availability" to updatedAvailability), SetOptions.merge())
+
+                    // Create booking in all relevant paths
+                    transaction.set(bookingRef, bookingData)
+                    transaction.set(doctorBookingRef, bookingData)
+                    transaction.set(patientBookingRef, bookingData)
+
+                }.addOnSuccessListener {
+                    view.showMessage("Appointment booked successfully")
+                }.addOnFailureListener {
+                    view.showError("Booking failed: ${it.message}")
+                }
             }
-
-            val availabilityMap = availabilitySnapshot.get("availability") as? Map<String, List<String>> ?: emptyMap()
-            val updatedAvailability = availabilityMap.toMutableMap()
-            val dayAvailability = updatedAvailability[date]?.toMutableList() ?: mutableListOf()
-            dayAvailability.remove(hour)
-            if (dayAvailability.isEmpty()) {
-                updatedAvailability.remove(date)
-            } else {
-                updatedAvailability[date] = dayAvailability
-            }
-
-
-            transaction.set(appointmentRef, mapOf("timeslots" to updatedTimeslots), SetOptions.merge())
-            transaction.set(bookingRef, mapOf(
-                "doctorId" to doctorId,
-                "patientId" to user.userId,
-                "specialization" to specialization,
-                "date" to date,
-                "time" to hour,
-                "description" to "Appointment was booked by doctor search",
-                "status" to "booked",
-                "bookedAt" to Timestamp.now()
-            ))
-            transaction.set(availabilityRef, mapOf("availability" to updatedAvailability), SetOptions.merge())
-
-        }.addOnSuccessListener {
-            view.showMessage("Appointment booked successfully")
-        }.addOnFailureListener {
-            view.showError("Booking failed: ${it.message}")
-        }
     }
-
-
-
 
     fun loadTimeSlots(date: String, specialization: String, doctorId: String) {
         if (specialization.isBlank()) {

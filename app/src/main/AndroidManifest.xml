@@ -13,6 +13,12 @@
         android:theme="@style/Theme.MyEclinic"
         tools:targetApi="31">
         <activity
+            android:name=".util.ChatListAdapter"
+            android:exported="false" />
+        <activity
+            android:name=".view.ChatActivity"
+            android:exported="false" />
+        <activity
             android:name=".view.DoctorScheduleActivity"
             android:exported="false" />
         <activity
