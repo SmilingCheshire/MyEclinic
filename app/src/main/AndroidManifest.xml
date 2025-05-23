@@ -13,7 +13,10 @@
         android:theme="@style/Theme.MyEclinic"
         tools:targetApi="31">
         <activity
-            android:name=".util.ChatListAdapter"
+            android:name=".view.ProfileActivity"
+            android:exported="false" />
+        <activity
+            android:name=".util.ChatPreviewAdapter"
             android:exported="false" />
         <activity
             android:name=".view.ChatActivity"
@@ -22,10 +25,7 @@
             android:name=".view.DoctorScheduleActivity"
             android:exported="false" />
         <activity
-            android:name=".view.ChatSelectionActivity"
-            android:exported="false" />
-        <activity
-            android:name=".util.AdminDashboardActivity"
+            android:name=".view.ChatListActivity"
             android:exported="false" />
         <activity
             android:name=".view.DoctorProfileActivity"

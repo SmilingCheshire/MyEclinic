@@ -3,14 +3,9 @@ package com.example.myeclinic.view
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myeclinic.R
-import com.example.myeclinic.presenter.DoctorSchedulePresenter
 import com.example.myeclinic.util.UserSession
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 class DoctorActivity : AppCompatActivity() {
 
@@ -27,11 +22,11 @@ class DoctorActivity : AppCompatActivity() {
         val buttonSchedule = findViewById<Button>(R.id.button_schedule)
 
         buttonMe.setOnClickListener {
-            startActivity(Intent(this, DoctorProfileActivity::class.java))
+            startActivity(Intent(this, ProfileActivity::class.java))
         }
 
         buttonChat.setOnClickListener {
-            startActivity(Intent(this, ChatSelectionActivity::class.java))
+            startActivity(Intent(this, ChatListActivity::class.java))
         }
 
         buttonSchedule.setOnClickListener {

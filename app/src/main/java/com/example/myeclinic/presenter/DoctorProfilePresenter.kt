@@ -4,6 +4,7 @@ import com.example.myeclinic.model.Doctor
 import com.example.myeclinic.presenter.DoctorProfileView
 import com.example.myeclinic.util.UserSession
 import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
@@ -172,6 +173,14 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
                     transaction.set(bookingRef, bookingData)
                     transaction.set(doctorBookingRef, bookingData)
                     transaction.set(patientBookingRef, bookingData)
+
+                    //Add reference to doctor and patient
+                    val patientRef = db.collection("patients").document(user.userId)
+                    val doctorRef = db.collection("doctors").document(doctorId)
+
+                    transaction.update(patientRef, "bookings", FieldValue.arrayUnion(bookingRef.id))
+                    transaction.update(doctorRef, "bookings", FieldValue.arrayUnion(bookingRef.id))
+
 
                 }.addOnSuccessListener {
                     view.showMessage("Appointment booked successfully")

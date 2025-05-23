@@ -2,6 +2,7 @@ package com.example.myeclinic.view
 
 import android.app.DatePickerDialog
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.view.View
@@ -10,6 +11,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myeclinic.R
 import com.example.myeclinic.model.Doctor
+import com.example.myeclinic.presenter.ChatPresenter
 import com.example.myeclinic.presenter.DoctorProfilePresenter
 import com.example.myeclinic.presenter.DoctorProfileView
 import com.example.myeclinic.util.UserSession
@@ -93,7 +95,15 @@ class DoctorProfileActivity : AppCompatActivity(), DoctorProfileView {
         }
 
         btnChat.setOnClickListener {
-            Toast.makeText(this, "Chat feature coming soon", Toast.LENGTH_SHORT).show()
+            val currentUserId = userId ?: return@setOnClickListener
+            val targetUserId = doctorId ?: return@setOnClickListener
+            val chatId = listOf(currentUserId, targetUserId).sorted().joinToString("_")
+
+            val intent = Intent(this, ChatActivity::class.java).apply {
+                putExtra("chatId", chatId)
+                putExtra("otherUserId", targetUserId)
+            }
+            startActivity(intent)
         }
     }
 

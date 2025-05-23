@@ -164,6 +164,14 @@ class QuickAssessmentPresenter(
                     transaction.set(bookingRef, bookingData)
                     transaction.set(patientBookingRef, bookingData)
                     transaction.set(doctorBookingRef, bookingData)
+
+                    //Add reference to doctor and patient
+                    val patientRef = db.collection("patients").document(user.userId)
+                    val doctorRef = db.collection("doctors").document(doctorId)
+
+                    transaction.update(patientRef, "bookings", FieldValue.arrayUnion(bookingRef.id))
+                    transaction.update(doctorRef, "bookings", FieldValue.arrayUnion(bookingRef.id))
+
                 }.addOnSuccessListener {
                     view.showSuccessMessage()
                 }.addOnFailureListener {
