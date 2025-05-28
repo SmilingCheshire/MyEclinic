@@ -6,11 +6,8 @@ import com.example.myeclinic.model.Patient
 import com.example.myeclinic.util.UserSession
 import com.google.firebase.firestore.FirebaseFirestore
 private val db = FirebaseFirestore.getInstance()
-private val user = UserSession.currentUser
-private val userId = user?.userId
-private val role = user?.role
 
-class ProfilePresenter (private val view: ProfileView) {
+class ProfilePresenter (private val view: ProfileView, private val userId: String, private val role: String) {
     fun loadProfile() {
         if (userId == null || role == null) {
             view.showError("User not logged in")

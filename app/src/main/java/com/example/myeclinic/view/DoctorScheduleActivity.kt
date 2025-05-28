@@ -15,8 +15,10 @@ import com.example.myeclinic.presenter.DoctorSchedulePresenter
 import com.example.myeclinic.util.AppointmentDay
 import com.example.myeclinic.util.UserSession
 import com.google.firebase.firestore.FirebaseFirestore
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import java.time.temporal.IsoFields
 import java.util.*
 
 class DoctorScheduleActivity : AppCompatActivity() {
@@ -31,6 +33,67 @@ class DoctorScheduleActivity : AppCompatActivity() {
     private val formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy\nEEEE", Locale.getDefault())
     private var currentIndex = 0
     private var days: List<AppointmentDay> = emptyList()
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun checkAndPromptNextWeekAvailability() {
+        val sharedPref = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val hasShownDialog = sharedPref.getBoolean("hasShownAvailabilityPrompt", false)
+
+        if (hasShownDialog) return // Already shown before
+
+        val today = LocalDate.now()
+        val dayOfWeek = today.dayOfWeek
+
+        if (dayOfWeek == DayOfWeek.FRIDAY ||
+            dayOfWeek == DayOfWeek.SATURDAY ||
+            dayOfWeek == DayOfWeek.SUNDAY ||
+            dayOfWeek == DayOfWeek.MONDAY
+        ) {
+            val nextWeekDays = (1..7).map { today.plusDays(it.toLong()) }
+                .filter { it.dayOfWeek != DayOfWeek.SATURDAY && it.dayOfWeek != DayOfWeek.SUNDAY }
+
+            showAvailabilityPickerDialog(nextWeekDays)
+
+            sharedPref.edit().putBoolean("hasShownAvailabilityPrompt", true).apply()
+        }
+    }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun showAvailabilityPickerDialog(days: List<LocalDate>) {
+        val availableOptions = com.example.myeclinic.util.ScheduleConstants.workingHours
+        val selectedHoursPerDay = mutableMapOf<String, List<String>>()
+
+        fun promptForDay(index: Int) {
+            if (index >= days.size) {
+                presenter.saveAvailabilityForDays(selectedHoursPerDay)
+                return
+            }
+
+            val day = days[index]
+            val checkedItems = BooleanArray(availableOptions.size)
+            val selected = mutableListOf<String>()
+
+            AlertDialog.Builder(this)
+                .setTitle("Select hours for ${day.format(DateTimeFormatter.ofPattern("EEEE, dd MMM"))}")
+                .setMultiChoiceItems(availableOptions.toTypedArray(), checkedItems) { _, which, isChecked ->
+                    val hour = availableOptions[which]
+                    if (isChecked) selected.add(hour) else selected.remove(hour)
+                }
+                .setPositiveButton("Next") { _, _ ->
+                    selectedHoursPerDay[day.toString()] = selected.toList()
+                    promptForDay(index + 1)
+                }
+                .setNegativeButton("Skip") { _, _ ->
+                    promptForDay(index + 1)
+                }
+                .setCancelable(false)
+                .show()
+        }
+
+        promptForDay(0)
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun showDay(index: Int) {
@@ -80,8 +143,33 @@ class DoctorScheduleActivity : AppCompatActivity() {
                 presenter = DoctorSchedulePresenter(firestore, doctorId, specialization)
                 presenter.loadSchedule { scheduleList ->
                     days = scheduleList.sortedBy { it.date }
+
+                    val sharedPref = getSharedPreferences("app_prefs", MODE_PRIVATE)
+                    val lastPromptWeek = sharedPref.getInt("lastPromptWeek", -1)
+
+                    val today = LocalDate.now()
+                    val currentWeek = today.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
+
+                    val shouldCheckNextWeek = today.dayOfWeek in listOf(
+                        DayOfWeek.FRIDAY, DayOfWeek.SATURDAY, DayOfWeek.SUNDAY, DayOfWeek.MONDAY
+                    )
+
+                    val nextWeekDays = (1..7).map { today.plusDays(it.toLong()) }
+                        .filter { it.dayOfWeek != DayOfWeek.SATURDAY && it.dayOfWeek != DayOfWeek.SUNDAY }
+
+                    val hasNextWeekAvailability = days.any { day ->
+                        val date = LocalDate.parse(day.date)
+                        date in nextWeekDays && day.timeslots.any { it["booked"] == false }
+                    }
+
+                    if (shouldCheckNextWeek && !hasNextWeekAvailability && lastPromptWeek != currentWeek) {
+                        showAvailabilityPickerDialog(nextWeekDays)
+                        sharedPref.edit().putInt("lastPromptWeek", currentWeek).apply()
+                    }
+
                     if (days.isNotEmpty()) showDay(0)
                 }
+
                 btnPrevDate.setOnClickListener {
                     if (currentIndex > 0) {
                         currentIndex--

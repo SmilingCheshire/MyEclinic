@@ -4,6 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import com.example.myeclinic.util.AppointmentDay
 import com.example.myeclinic.util.ScheduleConstants
+import com.example.myeclinic.util.UserSession
 import com.google.android.gms.tasks.Tasks
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
@@ -49,26 +50,17 @@ class DoctorSchedulePresenter(
                     val timeSlots: List<Map<String, Any>>
                     if (doc.exists()) {
                         timeSlots = doc["timeslots"] as? List<Map<String, Any>> ?: emptyList()
+                        val availableHours = timeSlots
+                            .filter { it["booked"] == false }
+                            .mapNotNull { it["hour"] as? String }
+                        availabilityMap[dateStr] = availableHours
+                        resultList.add(AppointmentDay(dateStr, timeSlots))
                     } else {
-                        timeSlots = ScheduleConstants.workingHours.map {
-                            mapOf("hour" to it, "booked" to false)
-                        }
-                        val newDoc = mapOf("timeslots" to timeSlots)
-                        val setTask = firestore
-                            .collection("appointments")
-                            .document(dateStr)
-                            .collection(specialization)
-                            .document(doctorId)
-                            .set(newDoc)
-                        saveTasks.add(setTask)
+                        // Just show empty timeslots (no availability set)
+                        availabilityMap[dateStr] = emptyList()
+                        resultList.add(AppointmentDay(dateStr, emptyList()))
                     }
 
-                    val availableHours = timeSlots
-                        .filter { it["booked"] == false }
-                        .mapNotNull { it["hour"] as? String }
-
-                    availabilityMap[dateStr] = availableHours
-                    resultList.add(AppointmentDay(dateStr, timeSlots))
                 }
 
                 // Push to doctor_availability collection
@@ -132,6 +124,32 @@ class DoctorSchedulePresenter(
                 onError(it)
             }
     }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun saveAvailabilityForDays(hoursMap: Map<String, List<String>>) {
+        val firestore = FirebaseFirestore.getInstance()
+        val user = UserSession.currentUser ?: return
+        val doctorId = user.userId
+
+        // Load specialization
+        firestore.collection("doctors").document(doctorId).get().addOnSuccessListener { doc ->
+            val specialization = doc.getString("specialization") ?: return@addOnSuccessListener
+
+            for ((date, hours) in hoursMap) {
+                val timeslotList = hours.map {
+                    mapOf("hour" to it, "booked" to false)
+                }
+
+                val data = mapOf("timeslots" to timeslotList)
+                firestore.collection("appointments")
+                    .document(date)
+                    .collection(specialization)
+                    .document(doctorId)
+                    .set(data)
+            }
+        }
+    }
+
 
     fun fetchDoctorSchedulesForDate(
         date: String,

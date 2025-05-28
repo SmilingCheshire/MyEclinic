@@ -28,9 +28,9 @@ class ProfileActivity : AppCompatActivity(), ProfilePresenter.ProfileView {
 
     private lateinit var presenter: ProfilePresenter
 
-    private val user = UserSession.currentUser
-    private val role = user?.role ?: "Patient"
-    private val userId = user?.userId
+    private var role: String = "Patient"
+    private var userId: String? = null
+
     private var loadedDoctor: Doctor? = null
     private var loadedPatient: Patient? = null
     private var loadedAdmin: Admin? = null
@@ -38,6 +38,12 @@ class ProfileActivity : AppCompatActivity(), ProfilePresenter.ProfileView {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val user = UserSession.currentUser
+        role = user?.role ?: "Patient"
+        userId = user?.userId
+
+
         setContentView(R.layout.activity_profile)
 
         // Bind views
@@ -56,7 +62,7 @@ class ProfileActivity : AppCompatActivity(), ProfilePresenter.ProfileView {
         btnSave = findViewById(R.id.btn_save)
         btnDiscard = findViewById(R.id.btn_discard)
 
-        presenter = ProfilePresenter(this)
+        presenter = ProfilePresenter(this, userId!!, role)
 
         if (userId != null) {
             presenter.loadProfile()
@@ -167,8 +173,13 @@ class ProfileActivity : AppCompatActivity(), ProfilePresenter.ProfileView {
         etBio.visibility = View.GONE
         etContact.visibility = View.GONE
 
-        btnEdit.visibility = View.VISIBLE
-        btnRetire.visibility = View.VISIBLE
+        if (role == "Doctor") {
+            btnEdit.visibility = View.VISIBLE
+            btnRetire.visibility = View.VISIBLE
+        } else {
+            btnEdit.visibility = View.GONE
+            btnRetire.visibility = View.GONE
+        }
         btnSave.visibility = View.GONE
         btnDiscard.visibility = View.GONE
     }
