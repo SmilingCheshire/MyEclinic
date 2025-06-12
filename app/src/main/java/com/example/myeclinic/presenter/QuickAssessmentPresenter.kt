@@ -144,6 +144,7 @@ class QuickAssessmentPresenter(
                         "doctorName" to doctorName,
                         "patientId" to user.userId,
                         "patientName" to user.name,
+                        "specialization" to specialization,
                         "date" to date,
                         "time" to hour,
                         "description" to description,

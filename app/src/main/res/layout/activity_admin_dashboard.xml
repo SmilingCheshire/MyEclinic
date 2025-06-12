@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center">
+
+    <Button
+        android:id="@+id/btnRequests"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Manage Requests" />
+
+    <Button
+        android:id="@+id/btnUsers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Manage Users"
+        android:layout_marginTop="12dp" />
+
+    <Button
+        android:id="@+id/btnSpecializations"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Manage Specializations"
+        android:layout_marginTop="12dp" />
+
+    <Button
+        android:id="@+id/btnAppointments"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Manage Appointments"
+        android:layout_marginTop="12dp" />
+
+    <Button
+        android:id="@+id/btnAvailability"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Medical History"
+        android:layout_marginTop="12dp" />
+
+    <Button
+        android:id="@+id/btnCommunication"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Communication Oversight"
+        android:layout_marginTop="12dp" />
+
+</LinearLayout>

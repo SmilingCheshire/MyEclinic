@@ -43,9 +43,19 @@ class MessageAdapter : RecyclerView.Adapter<MessageAdapter.MessageViewHolder>() 
 
     inner class MessageViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val messageText: TextView = view.findViewById(R.id.messageText)
+        private val senderNameText: TextView = view.findViewById(R.id.senderNameText)
+
 
         fun bind(msg: Message) {
             messageText.text = msg.text
+
+            if (UserSession.currentUser?.role == "Admin") {
+                senderNameText.visibility = View.VISIBLE
+                // Display sender ID or name (ideally use name if available)
+                senderNameText.text = "From: ${msg.senderName}"
+            } else {
+                senderNameText.visibility = View.GONE
+            }
         }
     }
 }

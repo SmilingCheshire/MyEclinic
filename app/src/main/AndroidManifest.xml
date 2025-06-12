@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
 
     <application
         android:allowBackup="true"
@@ -12,6 +15,33 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyEclinic"
         tools:targetApi="31">
+
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
+        <activity
+            android:name=".view.CommunicationOversightActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.MedicalHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.AppointmentManagementActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.UsersActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.RequestsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.AdminDashboardActivity"
+            android:exported="false" />
         <activity
             android:name=".view.PatientActivity"
             android:exported="false" />
@@ -23,7 +53,7 @@
             android:exported="false" />
         <activity
             android:name=".view.ChatActivity"
-            android:exported="false" />
+            android:exported="true" />
         <activity
             android:name=".view.DoctorScheduleActivity"
             android:exported="false" />
@@ -31,7 +61,7 @@
             android:name=".view.ChatListActivity"
             android:exported="false" />
         <activity
-            android:name=".view.DoctorProfileActivity"
+            android:name=".view.AnotherProfileActivity"
             android:exported="false" />
         <activity
             android:name=".view.QuickAssessmentActivity"

@@ -56,7 +56,6 @@ class DoctorSchedulePresenter(
                         availabilityMap[dateStr] = availableHours
                         resultList.add(AppointmentDay(dateStr, timeSlots))
                     } else {
-                        // Just show empty timeslots (no availability set)
                         availabilityMap[dateStr] = emptyList()
                         resultList.add(AppointmentDay(dateStr, emptyList()))
                     }
@@ -76,9 +75,8 @@ class DoctorSchedulePresenter(
                         onComplete(resultList.sortedBy { it.date })
                     }
                     .addOnFailureListener {
-                        // Log error for debugging
                         it.printStackTrace()
-                        onComplete(resultList.sortedBy { it.date }) // fallback still provides partial UI
+                        onComplete(resultList.sortedBy { it.date })
                     }
             }
             .addOnFailureListener {

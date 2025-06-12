@@ -37,7 +37,16 @@ class ChatPreviewAdapter(
         private val timestampView: TextView = itemView.findViewById(R.id.timestampTextView)
 
         fun bind(chat: ChatPreview) {
-            username.text = chat.otherUserName
+            val currentUser = com.example.myeclinic.util.UserSession.currentUser
+
+            username.text = if (currentUser?.role == "Admin") {
+                // Show both names
+                "${chat.user1Name} ↔ ${chat.user2Name}"
+            } else {
+                // Show the other user's name only
+                if (chat.user1Id == currentUser?.userId) chat.user2Name else chat.user1Name
+            }
+
             lastMessage.text = chat.lastMessage
 
             chat.timestamp?.let { date ->
@@ -48,10 +57,8 @@ class ChatPreviewAdapter(
                     now.get(java.util.Calendar.YEAR) == msgCal.get(java.util.Calendar.YEAR) &&
                     now.get(java.util.Calendar.DAY_OF_YEAR) == msgCal.get(java.util.Calendar.DAY_OF_YEAR)
                 ) {
-                    // Same day: show time
                     android.text.format.DateFormat.format("hh:mm a", date).toString()
                 } else {
-                    // Different day: show date
                     android.text.format.DateFormat.format("MMM dd", date).toString()
                 }
 
@@ -61,10 +68,10 @@ class ChatPreviewAdapter(
             }
 
             itemView.setOnClickListener {
-                android.util.Log.d("ChatPreviewAdapter", "Clicked on chat: ${chat.chatId}")
-                onChatClicked(chat.chatId, chat.otherUserId)
+                val otherUserId = if (chat.user1Id == currentUser?.userId) chat.user2Id else chat.user1Id
+                onChatClicked(chat.chatId, otherUserId)
             }
-        }
+    }
     }
 
 }

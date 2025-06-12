@@ -1,7 +1,7 @@
 package com.example.myeclinic.presenter
 
 import com.example.myeclinic.model.Doctor
-import com.example.myeclinic.presenter.DoctorProfileView
+import com.example.myeclinic.model.Patient
 import com.example.myeclinic.util.UserSession
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
@@ -13,22 +13,27 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
 
     private val db = FirebaseFirestore.getInstance()
 
-    fun loadDoctorProfile(doctorId: String) {
-        db.collection("doctors").document(doctorId).get()
+    fun loadUserProfile(userId: String, role: String) {
+        val collection = if (role == "Doctor") "doctors" else "patients"
+        db.collection(collection).document(userId).get()
             .addOnSuccessListener { document ->
                 if (document.exists()) {
-                    val doctor = document.toObject(Doctor::class.java)
-                    doctor?.let {
-                        view.showDoctorInfo(it)
-                    } ?: view.showError("Invalid doctor data")
+                    if (role == "Doctor") {
+                        val doctor = document.toObject(Doctor::class.java)
+                        doctor?.let { view.showDoctorInfo(it) } ?: view.showError("Invalid doctor data")
+                    } else {
+                        val patient = document.toObject(Patient::class.java)
+                        patient?.let { view.showPatientInfo(it) } ?: view.showError("Invalid patient data")
+                    }
                 } else {
-                    view.showError("Doctor not found")
+                    view.showError("User not found")
                 }
             }
             .addOnFailureListener {
                 view.showError("Failed to load profile")
             }
     }
+
 
     fun updateDoctorDirectly(doctorId: String, doctor: Doctor) {
         db.collection("doctors").document(doctorId).set(doctor)
@@ -37,18 +42,6 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
             }
             .addOnFailureListener {
                 view.showError("Failed to update doctor")
-            }
-    }
-
-    fun storePendingUpdate(doctorId: String, doctor: Doctor) {
-        db.collection("doctors").document(doctorId)
-            .collection("pendingUpdates").document("info")
-            .set(doctor)
-            .addOnSuccessListener {
-                view.showError("Changes sent for admin approval")
-            }
-            .addOnFailureListener {
-                view.showError("Failed to send pending changes")
             }
     }
 
@@ -224,6 +217,7 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
 
 interface DoctorProfileView {
     fun showDoctorInfo(doctor: Doctor)
+    fun showPatientInfo(patient: Patient)
     fun showError(message: String)
     fun showMessage(message: String)
     fun showCalendarWithAvailability(availability: Map<String, List<String>>)

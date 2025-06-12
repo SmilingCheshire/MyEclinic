@@ -34,10 +34,14 @@ class DoctorScheduleActivity : AppCompatActivity() {
     private var currentIndex = 0
     private var days: List<AppointmentDay> = emptyList()
 
+    val user = UserSession.currentUser
+    val userId = user?.userId
+
     @RequiresApi(Build.VERSION_CODES.O)
     private fun checkAndPromptNextWeekAvailability() {
+        val userId = UserSession.currentUser?.userId ?: return
         val sharedPref = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        val hasShownDialog = sharedPref.getBoolean("hasShownAvailabilityPrompt", false)
+        val hasShownDialog = sharedPref.getBoolean("hasShownAvailabilityPrompt_$userId", false)
 
         if (hasShownDialog) return // Already shown before
 
@@ -54,7 +58,7 @@ class DoctorScheduleActivity : AppCompatActivity() {
 
             showAvailabilityPickerDialog(nextWeekDays)
 
-            sharedPref.edit().putBoolean("hasShownAvailabilityPrompt", true).apply()
+            sharedPref.edit().putBoolean("hasShownAvailabilityPrompt_$userId", true).apply()
         }
     }
 
@@ -145,7 +149,7 @@ class DoctorScheduleActivity : AppCompatActivity() {
                     days = scheduleList.sortedBy { it.date }
 
                     val sharedPref = getSharedPreferences("app_prefs", MODE_PRIVATE)
-                    val lastPromptWeek = sharedPref.getInt("lastPromptWeek", -1)
+                    val lastPromptWeek = sharedPref.getInt("lastPromptWeek_$userId", -1)
 
                     val today = LocalDate.now()
                     val currentWeek = today.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
@@ -164,7 +168,7 @@ class DoctorScheduleActivity : AppCompatActivity() {
 
                     if (shouldCheckNextWeek && !hasNextWeekAvailability && lastPromptWeek != currentWeek) {
                         showAvailabilityPickerDialog(nextWeekDays)
-                        sharedPref.edit().putInt("lastPromptWeek", currentWeek).apply()
+                        sharedPref.edit().putInt("lastPromptWeek_$userId", currentWeek).apply()
                     }
 
                     if (days.isNotEmpty()) showDay(0)

@@ -1,10 +1,22 @@
 package com.example.myeclinic.presenter
 
+import android.util.Log
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.myeclinic.util.UserSession
 import com.google.firebase.firestore.SetOptions
+import com.google.firebase.functions.ktx.functions
+import com.google.firebase.ktx.Firebase
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.json.JSONObject
+import java.io.IOException
+import okhttp3.Callback
+import okhttp3.Call
+import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 
 class ChatPresenter(
     private val chatId: String,
@@ -31,11 +43,12 @@ class ChatPresenter(
                     Message(
                         text = data["text"] as? String ?: "",
                         senderId = data["senderId"] as? String ?: "",
+                        senderName = data["senderName"] as? String ?: "Unknown",
                         timestamp = data["timestamp"] as? Timestamp
                     )
                 } ?: emptyList()
 
-                markMessagesAsSeen() // Optional: update seen status after loading
+                markMessagesAsSeen()
                 onMessagesLoaded(messages)
             }
     }
@@ -45,11 +58,13 @@ class ChatPresenter(
             onError("Invalid sender")
             return
         }
+        val senderName = UserSession.currentUser?.name ?: "User"
 
         val timestamp = Timestamp.now()
         val message = mapOf(
             "text" to text,
             "senderId" to senderId,
+            "senderName" to senderName,
             "receiverId" to otherUserId,
             "timestamp" to timestamp,
             "seen" to false
@@ -86,6 +101,7 @@ class ChatPresenter(
                                     .addOnSuccessListener {
                                         chatRef.update(updates)
                                         registerChatReference()
+                                        findAndSendPush(otherUserId, text, senderName, chatId, senderId)
                                     }
                                     .addOnFailureListener {
                                         onError(it.message ?: "Failed to initialize chat document")
@@ -97,6 +113,54 @@ class ChatPresenter(
             .addOnFailureListener {
                 onError(it.message ?: "Failed to send message")
             }
+    }
+
+    fun findAndSendPush(otherUserId: String, text: String, senderName: String, chatId: String, senderId: String) {
+        val possiblePaths = listOf("patients", "doctors", "admins")
+        val db = FirebaseFirestore.getInstance()
+
+        fun tryNext(index: Int) {
+            if (index >= possiblePaths.size) {
+                Log.e("FCM", "No FCM token found in any path")
+                return
+            }
+
+            val path = possiblePaths[index]
+            db.collection(path).document(otherUserId).get()
+                .addOnSuccessListener { doc ->
+                    val token = doc.getString("deviceToken")
+                    if (!token.isNullOrBlank()) {
+
+                        val payload = hashMapOf<String, Any>(
+                            "token" to token,
+                            "title" to "New message from $senderName",
+                            "body" to text,
+                            "chatId" to chatId,
+                            "senderId" to senderId
+                        )
+
+                        Log.d("FCM", "Sending push with: $payload")
+
+                        Firebase.functions
+                            .getHttpsCallable("sendPushNotification")
+                            .call(payload)
+                            .addOnSuccessListener {
+                                Log.d("FCM", "Push sent successfully")
+                            }
+                            .addOnFailureListener {
+                                Log.e("FCM", "Push failed: ${it.message}")
+                            }
+                    } else {
+                        tryNext(index + 1)
+                    }
+                }
+                .addOnFailureListener {
+                    Log.e("FCM", "Error fetching from $path: ${it.message}")
+                    tryNext(index + 1)
+                }
+        }
+
+        tryNext(0)
     }
 
     private fun markMessagesAsSeen() {
@@ -120,6 +184,7 @@ class ChatPresenter(
                     .update("unreadCounts.$senderId", 0)
             }
     }
+
     private fun registerChatReference() {
         val senderRole = UserSession.currentUser?.role ?: return
 
@@ -130,16 +195,13 @@ class ChatPresenter(
             else -> return
         }
 
-        // You might want to infer receiver role, but here we default to trying both
         val possibleReceiverPaths = listOf("patients", "doctors", "admins")
 
         val senderDocRef = db.collection(senderPath).document(senderId)
         val chatRefObject = mapOf("chatId" to chatId)
 
-        // Add chat reference to sender
         senderDocRef.update("chats", FieldValue.arrayUnion(chatRefObject))
 
-        // Try adding chat reference to receiver (we don't know their role exactly)
         for (path in possibleReceiverPaths) {
             val receiverDocRef = db.collection(path).document(otherUserId)
             receiverDocRef.get().addOnSuccessListener { doc ->
@@ -153,6 +215,7 @@ class ChatPresenter(
     data class Message(
         val text: String,
         val senderId: String,
+        val senderName: String,
         val timestamp: Timestamp?
     )
 }

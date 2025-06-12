@@ -2,6 +2,7 @@ package com.example.myeclinic.presenter
 
 import com.google.firebase.firestore.FirebaseFirestore
 import com.example.myeclinic.util.UserSession
+import java.util.Date
 
 class ChatListPresenter(
     private val onChatsLoaded: (List<ChatPreview>) -> Unit,
@@ -65,10 +66,19 @@ class ChatListPresenter(
                 val user1Name = doc.getString("user1Name") ?: "Unknown"
                 val user2Name = doc.getString("user2Name") ?: "Unknown"
 
-                val otherUserName = if (user1Name == UserSession.currentUser?.name) user2Name else user1Name
 
-
-                previews.add(ChatPreview(id, otherUserId, otherUserName, lastMessage, lastTimestamp?.toDate(), unreadCount))
+                previews.add(
+                    ChatPreview(
+                        chatId = id,
+                        user1Id = Id1,
+                        user1Name = user1Name,
+                        user2Id = Id2,
+                        user2Name = user2Name,
+                        lastMessage = lastMessage,
+                        timestamp = lastTimestamp?.toDate(),
+                        unreadCount = unreadCount
+                    )
+                )
 
                 fetched++
                 if (fetched == chatIds.size) {
@@ -85,10 +95,12 @@ class ChatListPresenter(
 
     data class ChatPreview(
         val chatId: String,
-        val otherUserId: String,
-        val otherUserName: String,
+        val user1Id: String,
+        val user1Name: String,
+        val user2Id: String,
+        val user2Name: String,
         val lastMessage: String,
-        val timestamp: java.util.Date?,
+        val timestamp: Date?,
         val unreadCount: Int
     )
 

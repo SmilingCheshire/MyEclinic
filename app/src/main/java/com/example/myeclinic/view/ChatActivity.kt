@@ -27,6 +27,11 @@ class ChatActivity : AppCompatActivity() {
         chatId = intent.getStringExtra("chatId") ?: return finish()
         otherUserId = intent.getStringExtra("otherUserId") ?: return finish()
 
+        val isAdminView = intent.getBooleanExtra("adminView", false)
+        if (isAdminView) {
+            Toast.makeText(this, "Admin view: you're monitoring this chat.", Toast.LENGTH_LONG).show()
+        }
+
         input = findViewById(R.id.messageInput)
         sendButton = findViewById(R.id.sendButton)
 

@@ -1,5 +1,6 @@
 package com.example.myeclinic.repository
 
+import android.util.Log
 import com.example.myeclinic.model.Patient
 import com.example.myeclinic.model.User
 import com.google.firebase.auth.FirebaseAuth
@@ -80,6 +81,29 @@ class UserRepository {
                 } else {
                     callback(false, null, task.exception?.message ?: "Login failed.")
                 }
+            }
+    }
+
+    fun updateUserToken(userId: String, token: String, role: String) {
+        val collection = when (role) {
+            "Patient" -> "patients"
+            "Doctor" -> "doctors"
+            "Admin" -> "admins"
+            else -> null
+        }
+
+        if (collection == null) {
+            Log.e("UserRepository", "Unknown role: $role. Cannot update token.")
+            return
+        }
+
+        val userDoc = FirebaseFirestore.getInstance().collection(collection).document(userId)
+        userDoc.update("deviceToken", token)
+            .addOnSuccessListener {
+                Log.d("UserRepository", "Device token updated successfully.")
+            }
+            .addOnFailureListener {
+                Log.e("UserRepository", "Failed to update device token: ${it.message}")
             }
     }
 

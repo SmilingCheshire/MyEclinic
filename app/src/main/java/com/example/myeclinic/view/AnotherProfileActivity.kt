@@ -11,12 +11,12 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myeclinic.R
 import com.example.myeclinic.model.Doctor
-import com.example.myeclinic.presenter.ChatPresenter
+import com.example.myeclinic.model.Patient
 import com.example.myeclinic.presenter.DoctorProfilePresenter
 import com.example.myeclinic.presenter.DoctorProfileView
 import com.example.myeclinic.util.UserSession
 
-class DoctorProfileActivity : AppCompatActivity(), DoctorProfileView {
+class AnotherProfileActivity : AppCompatActivity(), DoctorProfileView {
 
     private lateinit var tvName: TextView
     private lateinit var tvSpecialty: TextView
@@ -44,6 +44,9 @@ class DoctorProfileActivity : AppCompatActivity(), DoctorProfileView {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val viewedUserId = intent.getStringExtra("userId")
+        val viewedUserRole = intent.getStringExtra("userRole")
+
         setContentView(R.layout.activity_doctor_profile)
 
         // Bind views
@@ -65,13 +68,13 @@ class DoctorProfileActivity : AppCompatActivity(), DoctorProfileView {
         presenter = DoctorProfilePresenter(this)
         specialization = intent.getStringExtra("specialization") ?: ""
 
-        doctorId = intent.getStringExtra("doctorId")
-        if (doctorId != null) {
-            presenter.loadDoctorProfile(doctorId!!)
+        if (viewedUserId != null && viewedUserRole != null) {
+            presenter.loadUserProfile(viewedUserId, viewedUserRole)
         } else {
-            showError("Doctor ID not provided")
+            showError("User ID or Role not provided")
             finish()
         }
+
 
         btnSave.setOnClickListener {
             val updatedDoctor = loadedDoctor?.copy(
@@ -109,6 +112,8 @@ class DoctorProfileActivity : AppCompatActivity(), DoctorProfileView {
 
     override fun showDoctorInfo(doctor: Doctor) {
         loadedDoctor = doctor
+        doctorId = doctor.doctorId
+
 
         val isEditable = role == "Admin"
 
@@ -160,6 +165,27 @@ class DoctorProfileActivity : AppCompatActivity(), DoctorProfileView {
             btnAppointment.visibility = View.VISIBLE
             btnChat.visibility = View.VISIBLE
         }
+    }
+
+    override fun showPatientInfo(patient: Patient) {
+        tvName.text = patient.name
+        tvContact.text = patient.contactNumber
+        tvBio.text = patient.medicalHistory
+        tvSpecialty.text = patient.email
+
+        tvName.visibility = View.VISIBLE
+        tvContact.visibility = View.VISIBLE
+        tvBio.visibility = View.VISIBLE
+        tvSpecialty.visibility = View.VISIBLE
+
+        etName.visibility = View.GONE
+        etContact.visibility = View.GONE
+        etBio.visibility = View.GONE
+        etSpecialty.visibility = View.GONE
+
+        btnAppointment.visibility = View.GONE
+        btnRetire.visibility = View.GONE
+        btnSave.visibility = View.GONE
     }
 
     override fun showError(message: String) {

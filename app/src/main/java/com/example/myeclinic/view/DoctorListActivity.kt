@@ -5,15 +5,11 @@ import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.ListView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.example.myeclinic.R
 import com.example.myeclinic.model.Doctor
 import com.example.myeclinic.presenter.DoctorListPresenter
 import com.example.myeclinic.presenter.DoctorView
-import com.google.firebase.firestore.FirebaseFirestore
 
 class DoctorListActivity : AppCompatActivity(), DoctorView {
 
@@ -38,8 +34,9 @@ class DoctorListActivity : AppCompatActivity(), DoctorView {
 
         listView.setOnItemClickListener { _, _, position, _ ->
             val selectedDoctor = doctorList[position]
-            val intent = Intent(this, DoctorProfileActivity::class.java)
-            intent.putExtra("doctorId", selectedDoctor.doctorId)
+            val intent = Intent(this, AnotherProfileActivity::class.java)
+            intent.putExtra("userId", selectedDoctor.doctorId)
+            intent.putExtra("userRole", "Doctor")
             intent.putExtra("specialization", specialization)
             startActivity(intent)
         }
