@@ -1,0 +1,29 @@
+[debug] [2025-06-12T18:37:46.434Z] ----------------------------------------------------------------------
+[debug] [2025-06-12T18:37:46.436Z] Command:       C:\nvm4w\nodejs\node.exe C:\nvm4w\nodejs\node_modules\firebase-tools\lib\bin\firebase.js functions:shell
+[debug] [2025-06-12T18:37:46.437Z] CLI Version:   14.6.0
+[debug] [2025-06-12T18:37:46.437Z] Platform:      win32
+[debug] [2025-06-12T18:37:46.437Z] Node Version:  v20.19.2
+[debug] [2025-06-12T18:37:46.437Z] Time:          Thu Jun 12 2025 20:37:46 GMT+0200 (Central European Summer Time)
+[debug] [2025-06-12T18:37:46.437Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-06-12T18:37:46.640Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-06-12T18:37:46.641Z] > authorizing via signed-in user (zuggeragamer@gmail.com)
+[debug] [2025-06-12T18:37:46.641Z] [iam] checking project myeclinic-2a2a3 for permissions ["firebase.projects.get"]
+[debug] [2025-06-12T18:37:46.642Z] Checked if tokens are valid: false, expires at: 1749727352830
+[debug] [2025-06-12T18:37:46.642Z] Checked if tokens are valid: false, expires at: 1749727352830
+[debug] [2025-06-12T18:37:46.642Z] > refreshing access token with scopes: []
+[debug] [2025-06-12T18:37:46.644Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-06-12T18:37:46.644Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-06-12T18:37:46.826Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-06-12T18:37:46.826Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-06-12T18:37:46.845Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/myeclinic-2a2a3:testIamPermissions [none]
+[debug] [2025-06-12T18:37:46.846Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/myeclinic-2a2a3:testIamPermissions x-goog-quota-user=projects/myeclinic-2a2a3
+[debug] [2025-06-12T18:37:46.846Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/myeclinic-2a2a3:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-06-12T18:37:51.222Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/myeclinic-2a2a3:testIamPermissions 200
+[debug] [2025-06-12T18:37:51.222Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/myeclinic-2a2a3:testIamPermissions {"permissions":["firebase.projects.get"]}
+[debug] [2025-06-12T18:37:51.226Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-06-12T18:37:51.242Z] defaultcredentials: writing to file C:\Users\nazar\AppData\Roaming\firebase\zuggeragamer_gmail_com_application_default_credentials.json
+[debug] [2025-06-12T18:37:51.244Z] DEBUG: Setting GAC to C:\Users\nazar\AppData\Roaming\firebase\zuggeragamer_gmail_com_application_default_credentials.json
+[debug] [2025-06-12T18:37:51.245Z] Checked if tokens are valid: true, expires at: 1749757065826
+[debug] [2025-06-12T18:37:51.245Z] Checked if tokens are valid: true, expires at: 1749757065826
+[debug] [2025-06-12T18:37:51.245Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/myeclinic-2a2a3/adminSdkConfig [none]

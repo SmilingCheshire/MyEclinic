@@ -1,0 +1,6 @@
+<!-- res/drawable/active_booking_bg.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#E0FFE0" /> <!-- Light greenish -->
+    <corners android:radius="12dp" />
+</shape>

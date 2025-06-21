@@ -57,27 +57,39 @@ class ChatListPresenter(
 
                 val Id1 = participants.getOrNull(0) ?: ""
                 val Id2 = participants.getOrNull(1) ?: ""
-                val otherUserId = if (Id1 == UserSession.currentUser?.userId) Id2 else Id1
+
+                val currentUserId = UserSession.currentUser?.userId ?: ""
+                val user1Id = doc.getString("user1Id") ?: Id1
+                val user2Id = doc.getString("user2Id") ?: Id2
+                val user1Name = doc.getString("user1Name") ?: "Unknown"
+                val user2Name = doc.getString("user2Name") ?: "Unknown"
 
                 val lastMessage = doc.getString("lastMessage") ?: "No messages yet"
                 val lastTimestamp = doc.getTimestamp("lastTimestamp")
                 val unreadCount = (doc.get("unreadCounts.$userId") as? Long)?.toInt() ?: 0
 
-                val user1Name = doc.getString("user1Name") ?: "Unknown"
-                val user2Name = doc.getString("user2Name") ?: "Unknown"
+                val otherUserId: String
+                val otherUserName: String
 
+                if (currentUserId == user1Id) {
+                    otherUserId = user2Id
+                    otherUserName = user2Name
+                } else {
+                    otherUserId = user1Id
+                    otherUserName = user1Name
+                }
 
                 previews.add(
                     ChatPreview(
                         chatId = id,
-                        user1Id = Id1,
+                        user1Id = user1Id,
                         user1Name = user1Name,
-                        user2Id = Id2,
+                        user2Id = user2Id,
                         user2Name = user2Name,
                         lastMessage = lastMessage,
                         timestamp = lastTimestamp?.toDate(),
                         unreadCount = unreadCount
-                    )
+                    ).copy(user2Id = otherUserId, user2Name = otherUserName)
                 )
 
                 fetched++
