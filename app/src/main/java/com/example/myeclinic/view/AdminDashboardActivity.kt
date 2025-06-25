@@ -5,7 +5,21 @@ import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.example.myeclinic.R
-
+/**
+ * Called when the activity is starting. Sets up the admin dashboard layout and configures
+ * navigation buttons to different admin features.
+ *
+ * Buttons and their targets:
+ * - Requests: Opens [RequestsActivity] for reviewing profile change requests.
+ * - Users: Opens [UsersActivity] to view and manage users.
+ * - Specializations: Opens [SpecializationActivity] to manage medical specializations.
+ * - Appointments: Opens [AppointmentManagementActivity] for viewing/modifying appointments.
+ * - Availability: Opens [MedicalHistoryActivity] to view patient history (used here as availability).
+ * - Communication: Opens [CommunicationOversightActivity] for overseeing chats.
+ *
+ * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
+ *        this Bundle contains the most recent data. Otherwise, it is null.
+ */
 class AdminDashboardActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

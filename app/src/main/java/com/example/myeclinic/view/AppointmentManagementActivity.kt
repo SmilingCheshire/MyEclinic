@@ -36,7 +36,27 @@ class AppointmentManagementActivity : AppCompatActivity(), AppointmentManagement
     private lateinit var spinnerDoctor: Spinner
 
     private val patientMap = mutableMapOf<String, String>()
-
+    /**
+     * Initializes the Appointment Management screen. This function:
+     *
+     * - Binds UI elements such as buttons, spinners, and recycler view.
+     * - Initializes the [AppointmentManagementPresenter] to handle logic and data operations.
+     * - Sets up the [TimeslotAdapter] with booking and cancellation behavior.
+     * - Loads available specializations and patients.
+     * - Sets up listeners for:
+     *   - Date selection using a date picker.
+     *   - Specialization selection to filter doctors.
+     *   - Doctor selection to fetch available timeslots.
+     *
+     * This activity allows administrators to:
+     * - View available appointment slots.
+     * - Create new bookings by selecting a patient and timeslot.
+     * - Cancel existing bookings.
+     *
+     * The activity layout is defined in `activity_appointment_management.xml`.
+     *
+     * @param savedInstanceState Previously saved state of the activity, if any.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_appointment_management)
@@ -91,7 +111,14 @@ class AppointmentManagementActivity : AppCompatActivity(), AppointmentManagement
         }
 
     }
-
+    /**
+     * Displays the list of patients in an AutoCompleteTextView.
+     *
+     * The list is used to allow quick patient selection by name, mapping names to their IDs
+     * in the `patientMap` for lookup during booking.
+     *
+     * @param patients A list of pairs, where each pair contains the patient name and patient ID.
+     */
     override fun showPatients(patients: List<Pair<String, String>>) {
         patientMap.clear()
         val names = patients.map { it.first }
@@ -103,7 +130,13 @@ class AppointmentManagementActivity : AppCompatActivity(), AppointmentManagement
         actv?.threshold = 1
     }
 
-
+    /**
+     * Populates the specialization spinner with the provided list of specializations.
+     *
+     * This is typically called when the admin or doctor is assigning or filtering by specialization.
+     *
+     * @param specializations A list of medical specializations (e.g., Cardiology, Pediatrics).
+     */
     override fun showSpecializations(specializations: List<String>) {
         this.specializations.clear()
         this.specializations.addAll(specializations)
@@ -112,7 +145,13 @@ class AppointmentManagementActivity : AppCompatActivity(), AppointmentManagement
         spinnerSpecialization.adapter = adapter
     }
 
-
+    /**
+     * Populates the doctor spinner with available doctors for the selected specialization.
+     *
+     * Also stores the list of doctors internally for ID lookup and later use.
+     *
+     * @param doctors A list of [Doctor] objects representing available practitioners.
+     */
     override fun showDoctors(doctors: List<Doctor>) {
         this.doctors.clear()
         this.doctors.addAll(doctors)
@@ -123,15 +162,32 @@ class AppointmentManagementActivity : AppCompatActivity(), AppointmentManagement
         spinnerDoctor.adapter = adapter
     }
 
-
+    /**
+     * Displays a list of available and booked timeslots for a given doctor and date.
+     *
+     * Used to visually indicate when a doctor is available for appointments.
+     *
+     * @param timeslots A list of [Timeslot] objects representing availability.
+     */
     override fun showTimeslots(timeslots: List<Timeslot>) {
         timeslotAdapter.submitList(timeslots)
     }
-
+    /**
+     * Shows a brief toast message to the user.
+     *
+     * Useful for displaying confirmation or error messages.
+     *
+     * @param message The message to display.
+     */
     override fun showMessage(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
-
+    /**
+     * Opens a date picker dialog and updates the selected date.
+     *
+     * Once a date is picked, the system triggers loading of timeslots for the selected
+     * doctor and specialization, if available.
+     */
     private fun showDatePicker() {
         val now = Calendar.getInstance()
         DatePickerDialog(this, { _, year, month, day ->
@@ -146,7 +202,14 @@ class AppointmentManagementActivity : AppCompatActivity(), AppointmentManagement
             }
         }, now.get(Calendar.YEAR), now.get(Calendar.MONTH), now.get(Calendar.DAY_OF_MONTH)).show()
     }
-
+    /**
+     * Displays a booking dialog where the admin or doctor can assign a timeslot to a patient.
+     *
+     * This includes an AutoCompleteTextView for selecting a patient by name and a text field
+     * for describing the medical issue.
+     *
+     * @param timeslot The [Timeslot] object representing the time being booked.
+     */
     private fun showBookingDialog(timeslot: Timeslot) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_booking, null)
         val descriptionInput = dialogView.findViewById<EditText>(R.id.etDescription)
@@ -185,7 +248,13 @@ class AppointmentManagementActivity : AppCompatActivity(), AppointmentManagement
             .setNegativeButton("Cancel", null)
             .show()
     }
-
+    /**
+     * Displays a confirmation dialog for canceling an existing booking.
+     *
+     * If confirmed, triggers cancellation logic via the presenter.
+     *
+     * @param timeslot The [Timeslot] to be cancelled.
+     */
     private fun showCancelDialog(timeslot: Timeslot) {
         AlertDialog.Builder(this)
             .setTitle("Cancel Booking at ${timeslot.hour}?")

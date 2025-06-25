@@ -9,10 +9,22 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreException
 import com.google.firebase.firestore.SetOptions
 
+/**
+ * Presenter class responsible for handling the doctor profile logic and
+ * interactions between the view and Firebase Firestore.
+ *
+ * @property view An instance of [DoctorProfileView] to update the UI based on presenter logic.
+ */
 class DoctorProfilePresenter(private val view: DoctorProfileView) {
 
     private val db = FirebaseFirestore.getInstance()
 
+    /**
+     * Loads a user profile based on their role (Doctor or Patient).
+     *
+     * @param userId The ID of the user to load.
+     * @param role The role of the user ("Doctor" or "Patient").
+     */
     fun loadUserProfile(userId: String, role: String) {
         val collection = if (role == "Doctor") "doctors" else "patients"
         db.collection(collection).document(userId).get()
@@ -34,7 +46,12 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
             }
     }
 
-
+    /**
+     * Directly updates doctor data in Firestore.
+     *
+     * @param doctorId The ID of the doctor to update.
+     * @param doctor The [Doctor] object containing updated information.
+     */
     fun updateDoctorDirectly(doctorId: String, doctor: Doctor) {
         db.collection("doctors").document(doctorId).set(doctor)
             .addOnSuccessListener {
@@ -45,6 +62,12 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
             }
     }
 
+    /**
+     * Retires a doctor based on the role of the requestor.
+     *
+     * @param doctorId The ID of the doctor to retire.
+     * @param role The role of the user initiating the request ("Admin" or "Doctor").
+     */
     fun retireDoctor(doctorId: String, role: String) {
         if (role == "Admin") {
             db.collection("doctors").document(doctorId)
@@ -69,6 +92,11 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
         }
     }
 
+    /**
+     * Loads the availability of a doctor for appointments.
+     *
+     * @param doctorId The ID of the doctor whose availability to load.
+     */
     fun loadDoctorAvailability(doctorId: String) {
 
         FirebaseFirestore.getInstance().collection("doctor_availability")
@@ -84,7 +112,14 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
             }
     }
 
-
+    /**
+     * Books an appointment for the current user with a specified doctor.
+     *
+     * @param doctorId The ID of the doctor.
+     * @param specialization The medical specialization involved in the appointment.
+     * @param date The date of the appointment.
+     * @param hour The selected hour for the appointment.
+     */
     fun bookAppointment(doctorId: String, specialization: String, date: String, hour: String) {
         val firestore = FirebaseFirestore.getInstance()
         val user = UserSession.currentUser ?: run {
@@ -98,6 +133,7 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
                     view.showError("Doctor not found")
                     return@addOnSuccessListener
                 }
+
                 val doctorName = doctorSnapshot.getString("name") ?: ""
                 val appointmentRef = firestore.collection("appointments")
                     .document(date)
@@ -167,13 +203,12 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
                     transaction.set(doctorBookingRef, bookingData)
                     transaction.set(patientBookingRef, bookingData)
 
-                    //Add reference to doctor and patient
+                    // Add reference to doctor and patient
                     val patientRef = db.collection("patients").document(user.userId)
                     val doctorRef = db.collection("doctors").document(doctorId)
 
                     transaction.update(patientRef, "bookings", FieldValue.arrayUnion(bookingRef.id))
                     transaction.update(doctorRef, "bookings", FieldValue.arrayUnion(bookingRef.id))
-
 
                 }.addOnSuccessListener {
                     view.showMessage("Appointment booked successfully")
@@ -183,6 +218,13 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
             }
     }
 
+    /**
+     * Loads all available time slots for a specific doctor on a given date and specialization.
+     *
+     * @param date The date to check for time slots.
+     * @param specialization The medical specialization involved.
+     * @param doctorId The ID of the doctor.
+     */
     fun loadTimeSlots(date: String, specialization: String, doctorId: String) {
         if (specialization.isBlank()) {
             view.showError("Specialization not provided")
@@ -212,9 +254,11 @@ class DoctorProfilePresenter(private val view: DoctorProfileView) {
                 view.showError("Failed to load time slots")
             }
     }
-
 }
 
+/**
+ * View interface used to interact with the UI layer.
+ */
 interface DoctorProfileView {
     fun showDoctorInfo(doctor: Doctor)
     fun showPatientInfo(patient: Patient)

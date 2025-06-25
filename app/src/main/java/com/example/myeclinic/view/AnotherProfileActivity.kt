@@ -41,7 +41,24 @@ class AnotherProfileActivity : AppCompatActivity(), DoctorProfileView {
 
     private var doctorId: String? = null
     private var loadedDoctor: Doctor? = null
-
+    /**
+     * Initializes the doctor/patient profile activity. This function:
+     *
+     * - Retrieves the user ID and role from the intent extras.
+     * - Binds all UI components (text views, edit texts, buttons).
+     * - Instantiates the [DoctorProfilePresenter] to handle business logic.
+     * - Loads the profile data of the viewed user (doctor or patient).
+     * - Sets up event listeners for:
+     *   - Saving changes to a doctor's profile (admin only).
+     *   - Retiring a doctor (admin only).
+     *   - Viewing doctor availability (patient).
+     *   - Initiating a chat with the doctor.
+     *
+     * The layout used is `activity_doctor_profile.xml`. Based on the current user's role,
+     * UI visibility and functionality are adjusted.
+     *
+     * @param savedInstanceState Bundle containing the activity’s previously saved state, if any.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val viewedUserId = intent.getStringExtra("userId")

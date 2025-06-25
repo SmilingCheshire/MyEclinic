@@ -9,7 +9,15 @@ import com.google.firebase.messaging.FirebaseMessaging
 
 class LogInPresenter(private val view: LogInView) {
     private val userRepository = UserRepository()
-
+    /**
+     * Handles user login flow, including authentication and post-login setup.
+     *
+     * Validates input, authenticates the user via [UserRepository], stores the user in [UserSession],
+     * fetches an FCM device token, updates it in Firestore, and navigates the user to their respective dashboard.
+     *
+     * @param email The user's email address.
+     * @param password The user's password.
+     */
     fun performLogin(email: String, password: String) {
         if (email.isEmpty() || password.isEmpty()) {
             view.onLoginFailure("Email and Password are required!")

@@ -14,6 +14,14 @@ class AppointmentManagementPresenter(
 
     private val db = FirebaseFirestore.getInstance()
 
+    /**
+     * Loads a list of doctors based on the selected specialization.
+     *
+     * Queries the Firestore `doctors` collection to find all active (non-retired) doctors
+     * with the given specialization. The results are then passed to the view.
+     *
+     * @param specialization The medical specialization used to filter doctors.
+     */
     override fun loadDoctorsBySpecialization(specialization: String) {
         db.collection("doctors")
             .whereEqualTo("specialization", specialization)
@@ -33,6 +41,16 @@ class AppointmentManagementPresenter(
     }
 
 
+    /**
+     * Loads available timeslots for a specific doctor on a given date.
+     *
+     * Retrieves the timeslot document for a particular doctor and specialization on the given date
+     * and parses the data into a list of `Timeslot` objects to be shown in the UI.
+     *
+     * @param date The date for which timeslots should be loaded (e.g., "2025-06-25").
+     * @param specialization The specialization of the doctor.
+     * @param doctorId The ID of the doctor whose availability is being queried.
+     */
     override fun loadTimeslots(date: String, specialization: String, doctorId: String) {
         val docRef = db.collection("appointments").document(date)
             .collection(specialization).document(doctorId)
@@ -67,6 +85,17 @@ class AppointmentManagementPresenter(
 
 
 
+    /**
+     * Creates a new booking for the selected appointment.
+     *
+     * This function performs a multi-step Firestore transaction:
+     * - Fetches doctor and patient data
+     * - Updates the timeslot to mark it as booked
+     * - Stores the booking in central, doctor-specific, and patient-specific collections
+     * - Updates availability
+     *
+     * @param appointment The appointment object containing all booking details.
+     */
     override fun createBooking(appointment: Appointment) {
         val db = FirebaseFirestore.getInstance()
 
@@ -148,6 +177,17 @@ class AppointmentManagementPresenter(
             }
     }
 
+    /**
+     * Cancels an existing booking based on doctor, date, and timeslot.
+     *
+     * Updates the booking's status to "cancelled", restores the timeslot,
+     * and adjusts the doctor's availability for the selected date.
+     *
+     * @param date The date of the appointment to cancel.
+     * @param specialization The medical specialization of the doctor.
+     * @param doctorId The ID of the doctor.
+     * @param hour The timeslot hour to cancel (e.g., "14:00").
+     */
     override fun cancelBooking(date: String, specialization: String, doctorId: String, hour: String) {
         val timeslotRef = db.collection("appointments").document(date)
             .collection(specialization).document(doctorId)
@@ -220,6 +260,12 @@ class AppointmentManagementPresenter(
     }
 
 
+    /**
+     * Loads all available medical specializations from the database.
+     *
+     * Fetches the list of specializations from the `specializations` collection in Firestore
+     * and forwards it to the view layer.
+     */
     override fun loadSpecializations() {
         db.collection("specializations")
             .get()
@@ -232,6 +278,12 @@ class AppointmentManagementPresenter(
             }
     }
 
+    /**
+     * Loads all registered patients from the database.
+     *
+     * Retrieves the list of patients from the `patients` collection in Firestore,
+     * mapping their IDs and names for use in dropdowns or appointment creation.
+     */
     override fun loadPatients() {
         db.collection("patients")
             .get()
@@ -251,6 +303,9 @@ class AppointmentManagementPresenter(
 
 }
 
+/**
+ * View interface used to interact with the UI layer.
+ */
 interface AppointmentManagementContract {
     interface View {
         fun showTimeslots(timeslots: List<Timeslot>)

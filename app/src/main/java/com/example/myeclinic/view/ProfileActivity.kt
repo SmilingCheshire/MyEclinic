@@ -35,7 +35,27 @@ class ProfileActivity : AppCompatActivity(), ProfilePresenter.ProfileView {
     private var loadedPatient: Patient? = null
     private var loadedAdmin: Admin? = null
     private var isRetirementRequest = false
-
+    /**
+     * Called when the `ProfileActivity` is created.
+     *
+     * This activity displays and optionally allows editing of the current user's profile,
+     * depending on their role (`Doctor`, `Patient`, or `Admin`). It supports:
+     * - Viewing name, contact, bio, and specialization.
+     * - Editing (for doctors), including requesting retirement.
+     * - Saving edits via the presenter logic.
+     *
+     * Workflow:
+     * - Loads the current user from [UserSession].
+     * - Initializes UI components including both TextViews (for view mode)
+     *   and EditTexts (for edit mode).
+     * - Sets up click listeners for editing, retiring, saving, and discarding changes.
+     *
+     * Behavior varies by role:
+     * - **Doctor**: Can edit profile and request retirement.
+     * - **Patient** and **Admin**: Can only view profile.
+     *
+     * @param savedInstanceState Bundle with the activity’s previously saved state, if any.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -98,11 +118,23 @@ class ProfileActivity : AppCompatActivity(), ProfilePresenter.ProfileView {
             exitEditMode()
         }
     }
-
+    /**
+     * Displays the doctor’s information in the profile view.
+     *
+     * Internally delegates to [showInfo] to handle the UI population.
+     *
+     * @param doctor The [Doctor] object containing profile data.
+     */
     override fun showDoctorInfo(doctor: Doctor) {
         showInfo(doctor)
     }
-
+    /**
+     * Displays the patient's information in the profile view.
+     *
+     * Populates the patient details and switches to read-only text mode.
+     *
+     * @param patient The [Patient] object containing profile data.
+     */
     override fun showPatientInfo(patient: Patient) {
         loadedPatient = patient
         tvName.text = patient.name
@@ -111,7 +143,13 @@ class ProfileActivity : AppCompatActivity(), ProfilePresenter.ProfileView {
         tvContact.text = patient.contactNumber
         showTextMode()
     }
-
+    /**
+     * Displays the admin's information in the profile view.
+     *
+     * Populates the admin contact data and switches to read-only text mode.
+     *
+     * @param admin The [Admin] object containing profile data.
+     */
     override fun showAdminInfo(admin: Admin) {
         loadedAdmin = admin
         tvName.text = admin.name
@@ -120,7 +158,11 @@ class ProfileActivity : AppCompatActivity(), ProfilePresenter.ProfileView {
         tvContact.text = admin.contactNumber
         showTextMode()
     }
-
+    /**
+     * Populates the profile UI with doctor-specific details.
+     *
+     * @param doctor The [Doctor] object containing profile data.
+     */
     private fun showInfo(doctor: Doctor) {
         loadedDoctor = doctor
         tvName.text = doctor.name
@@ -130,7 +172,11 @@ class ProfileActivity : AppCompatActivity(), ProfilePresenter.ProfileView {
         showTextMode()
     }
 
-
+    /**
+     * Switches the UI to edit mode.
+     *
+     * Replaces TextViews with EditTexts and shows save/discard buttons.
+     */
     private fun enterEditMode() {
         etName.setText(tvName.text)
         etSpecialty.setText(tvSpecialty.text)
@@ -152,7 +198,9 @@ class ProfileActivity : AppCompatActivity(), ProfilePresenter.ProfileView {
         btnSave.visibility = View.VISIBLE
         btnDiscard.visibility = View.VISIBLE
     }
-
+    /**
+     * Exits the edit mode and updates the TextViews with edited values.
+     */
     private fun exitEditMode() {
         tvName.text = etName.text.toString()
         tvSpecialty.text = etSpecialty.text.toString()
@@ -161,7 +209,11 @@ class ProfileActivity : AppCompatActivity(), ProfilePresenter.ProfileView {
 
         showTextMode()
     }
-
+    /**
+     * Displays the profile in read-only text mode.
+     *
+     * Adjusts the visibility of views based on the user's role.
+     */
     private fun showTextMode() {
         tvName.visibility = View.VISIBLE
         tvSpecialty.visibility = View.VISIBLE
@@ -183,11 +235,19 @@ class ProfileActivity : AppCompatActivity(), ProfilePresenter.ProfileView {
         btnSave.visibility = View.GONE
         btnDiscard.visibility = View.GONE
     }
-
+    /**
+     * Shows a short Toast with an error message.
+     *
+     * @param message The error message to display.
+     */
     override fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
-
+    /**
+     * Shows a longer Toast with a general message (e.g., confirmation).
+     *
+     * @param message The message to display.
+     */
     override fun showMessage(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }

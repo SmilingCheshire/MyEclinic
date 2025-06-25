@@ -16,7 +16,27 @@ class CommunicationOversightActivity : AppCompatActivity() {
     private lateinit var presenter: CommunicationOversightPresenter
     private lateinit var recyclerView: RecyclerView
     private lateinit var chatAdapter: ChatListAdapter
-
+    /**
+     * Initializes the Communication Oversight screen for admin users.
+     *
+     * This screen displays a list of all active chat sessions between users (patients, doctors, etc.)
+     * allowing administrators to monitor or intervene if necessary.
+     *
+     * Responsibilities:
+     * - Sets up the layout `activity_communication_oversight`.
+     * - Initializes a [RecyclerView] with a [ChatListAdapter] to display [ChatInfo] entries.
+     * - Handles item clicks by launching [ChatActivity] in admin view mode, passing along
+     *   the `chatId`, the `otherUserId`, and a boolean `adminView = true`.
+     * - Initializes [CommunicationOversightPresenter] to load all chat data from backend.
+     * - Displays a Toast message if loading fails.
+     *
+     * Intent Extras used when navigating to ChatActivity:
+     * - `chatId`: Unique identifier for the chat (String)
+     * - `otherUserId`: User ID of the second participant in the chat (String)
+     * - `adminView`: Boolean flag indicating admin is accessing the chat (true)
+     *
+     * @param savedInstanceState Bundle containing activity's previously saved state, if any.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_communication_oversight)

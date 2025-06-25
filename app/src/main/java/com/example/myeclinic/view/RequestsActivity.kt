@@ -16,7 +16,25 @@ class RequestsActivity : AppCompatActivity(), RequestsView {
     private lateinit var presenter: RequestsPresenter
     private lateinit var requestContainer: LinearLayout
     private var currentRequests: List<RequestData> = listOf()
-
+    /**
+     * Initializes the `RequestsActivity`, which allows an admin to view and handle user-submitted requests.
+     *
+     * This activity is responsible for:
+     * - Loading and displaying all pending profile update requests (e.g., doctor retirement or profile changes).
+     * - Interacting with the presenter to compare requests against the current database state.
+     * - Providing user interface elements for reviewing and approving or discarding requested changes.
+     *
+     * Flow:
+     * - Sets the content view to `activity_requests`.
+     * - Initializes the presenter and request container view.
+     * - Requests data via the presenter with `loadRequests()`.
+     *
+     * The presenter communicates back via the `RequestsView` interface callbacks:
+     * - `onRequestsLoaded()` for displaying the list of requests.
+     * - `showRequestDialog()` to allow the admin to approve or reject changes.
+     *
+     * @param savedInstanceState Optional saved state of the activity.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_requests)
@@ -25,7 +43,14 @@ class RequestsActivity : AppCompatActivity(), RequestsView {
         presenter = RequestsPresenter(this)
         presenter.loadRequests()
     }
-
+    /**
+     * Called when a list of pending user modification requests is loaded.
+     *
+     * This method updates the UI by displaying each request in the `requestContainer`.
+     * If the list is empty, it shows a message indicating there are no pending requests.
+     *
+     * @param requests A list of [RequestData] objects representing profile change requests.
+     */
     override fun onRequestsLoaded(requests: List<RequestData>) {
         currentRequests = requests
         requestContainer.removeAllViews()
@@ -53,7 +78,18 @@ class RequestsActivity : AppCompatActivity(), RequestsView {
             requestContainer.addView(view)
         }
     }
-
+    /**
+     * Displays a dialog showing the differences between the current database values
+     * and a pending profile update request.
+     *
+     * The dialog presents each changed field, and allows the admin to either:
+     * - **Confirm** the changes (applies them to the database),
+     * - **Discard** the changes (rejects the request),
+     * - **Cancel** (closes the dialog without taking action).
+     *
+     * @param changes A map of changed fields with pairs of current and requested values.
+     * @param request The original [RequestData] object associated with the changes.
+     */
     override fun showRequestDialog(changes: Map<String, Pair<Any?, Any?>>, request: RequestData) {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Requested Changes")

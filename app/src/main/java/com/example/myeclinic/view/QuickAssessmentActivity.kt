@@ -18,7 +18,25 @@ class QuickAssessmentActivity : AppCompatActivity(), QuickAssessmentPresenter.Qu
     private var selectedTime: String? = null
     private var selectedButton: Button? = null
     private var currentTimeButtons: MutableMap<String, Button> = mutableMapOf()
-
+    /**
+     * Called when the `QuickAssessmentActivity` is starting.
+     *
+     * This activity allows patients to quickly book an appointment by:
+     * - Selecting a date from a calendar view.
+     * - Viewing available timeslots for the selected date.
+     * - Choosing an available time.
+     * - Selecting a doctor from the list of available doctors for that time and specialization.
+     * - Providing a short description of the medical issue.
+     *
+     * Workflow:
+     * - Retrieves the medical specialization from the intent.
+     * - Initializes the [CalendarView] to only allow future dates.
+     * - Sets up a date change listener that triggers timeslot loading from the presenter.
+     *
+     * The UI flow continues in `showTimeslotDialog()` and `showDoctorSelectionDialog()` once user input is gathered.
+     *
+     * @param savedInstanceState A `Bundle` containing the activity's previously saved state, if any.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_quick_assessment)
@@ -35,7 +53,16 @@ class QuickAssessmentActivity : AppCompatActivity(), QuickAssessmentPresenter.Qu
             presenter.loadTimeslots(selectedDate!!)
         }
     }
-
+    /**
+     * Displays a dialog showing available timeslots for the selected date.
+     *
+     * Each timeslot is represented as a button. Unavailable timeslots are shown in red and disabled.
+     * When a user selects a time, the "Book Appointment" button becomes active.
+     *
+     * @param date The selected date for which timeslots are shown (formatted as yyyy-MM-dd).
+     * @param timeslots A list of time slot strings (e.g., "10:00", "14:30").
+     * @param availability A map indicating which timeslots are available (true = available).
+     */
     override fun showTimeslotDialog(date: String, timeslots: List<String>, availability: Map<String, Boolean>) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_date_popup, null)
         val tvSelectedDate = dialogView.findViewById<TextView>(R.id.tvSelectedDate)
@@ -82,14 +109,28 @@ class QuickAssessmentActivity : AppCompatActivity(), QuickAssessmentPresenter.Qu
 
         dialog.show()
     }
-
+    /**
+     * Marks a specific hour slot as unavailable in the current dialog.
+     *
+     * This is used when the state of availability changes dynamically (e.g., booking conflict).
+     *
+     * @param hour The time string to disable (e.g., "14:00").
+     */
     override fun markHourUnavailable(hour: String) {
         currentTimeButtons[hour]?.let {
             it.isEnabled = false
             it.setBackgroundColor(Color.RED)
         }
     }
-
+    /**
+     * Displays a doctor selection dialog after a timeslot is chosen.
+     *
+     * Allows the patient to choose a doctor and describe their health issue before confirming.
+     *
+     * @param date The selected appointment date.
+     * @param time The selected appointment time.
+     * @param doctorList A list of pairs (doctorId, doctorName) to populate the dropdown.
+     */
     override fun showDoctorSelectionDialog(date: String, time: String, doctorList: List<Pair<String, String>>) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_doctor_selection, null)
         val spinnerDoctor = dialogView.findViewById<Spinner>(R.id.spinnerDoctor)
@@ -128,11 +169,17 @@ class QuickAssessmentActivity : AppCompatActivity(), QuickAssessmentPresenter.Qu
 
         dialog.show()
     }
-
+    /**
+     * Shows a short toast indicating that the appointment was booked successfully.
+     */
     override fun showSuccessMessage() {
         Toast.makeText(this, "Appointment booked successfully!", Toast.LENGTH_SHORT).show()
     }
-
+    /**
+     * Displays a toast message to inform the user about an error.
+     *
+     * @param message The error message to be shown.
+     */
     override fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
     }

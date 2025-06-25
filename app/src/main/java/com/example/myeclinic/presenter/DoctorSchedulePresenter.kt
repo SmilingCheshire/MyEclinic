@@ -16,7 +16,18 @@ class DoctorSchedulePresenter(
     private val doctorId: String,
     private val specialization: String
 ) {
-
+    /**
+     * Loads a 30-day forward-looking schedule of working days (excluding weekends) for a doctor.
+     *
+     * For each valid date, this function:
+     * - Retrieves existing appointment documents from Firestore
+     * - Parses available (unbooked) time slots
+     * - Updates the `doctor_availability` collection with a summary map of availability
+     *
+     * The result is a list of [AppointmentDay] objects passed to [onComplete], sorted by date.
+     *
+     * @param onComplete Callback invoked with the list of parsed appointment days.
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     fun loadSchedule(onComplete: (List<AppointmentDay>) -> Unit) {
         val today = LocalDate.now()
@@ -85,7 +96,17 @@ class DoctorSchedulePresenter(
             }
     }
 
-
+    /**
+     * Fetches booking details for a specific doctor on a given date and time.
+     *
+     * This includes patient name, patient ID, and the appointment description.
+     * Patient name is retrieved from the `users` collection based on the patient ID.
+     *
+     * @param date The date of the appointment (format: "YYYY-MM-DD").
+     * @param time The time slot for the appointment (e.g., "10:30").
+     * @param onResult Callback returning patient name, ID, and description if booking exists.
+     * @param onError Callback invoked if the operation fails or no booking is found.
+     */
     fun fetchBookingDetails(
         date: String,
         time: String,
@@ -122,7 +143,15 @@ class DoctorSchedulePresenter(
                 onError(it)
             }
     }
-
+    /**
+     * Saves the availability for a doctor for multiple days.
+     *
+     * Each entry in [hoursMap] represents a date with a list of available hours.
+     * For each date, creates or overwrites a Firestore document containing timeslot data
+     * under the appropriate specialization and doctor ID.
+     *
+     * @param hoursMap A map of date strings (e.g., "2025-06-26") to available time slots (e.g., ["10:00", "11:00"]).
+     */
     @RequiresApi(Build.VERSION_CODES.O)
     fun saveAvailabilityForDays(hoursMap: Map<String, List<String>>) {
         val firestore = FirebaseFirestore.getInstance()
@@ -148,7 +177,17 @@ class DoctorSchedulePresenter(
         }
     }
 
-
+    /**
+     * Retrieves all appointment schedules for a list of doctors on a specific date.
+     *
+     * Looks under the `appointments/{date}/{specialization}/{doctorId}` path for each doctor.
+     * Each resulting document contains a list of time slots which are returned in a map.
+     *
+     * @param date The date for which to retrieve schedules (e.g., "2025-06-26").
+     * @param doctorIds List of doctor IDs to query.
+     * @param specialization Medical specialization used to locate subcollections.
+     * @param callback Callback returning a map of doctorId to list of time slots.
+     */
     fun fetchDoctorSchedulesForDate(
         date: String,
         doctorIds: List<String>,

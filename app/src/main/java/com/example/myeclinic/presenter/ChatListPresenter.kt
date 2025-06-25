@@ -11,6 +11,14 @@ class ChatListPresenter(
     private val db = FirebaseFirestore.getInstance()
     private val userId = UserSession.currentUser?.userId ?: ""
 
+    /**
+     * Loads the list of chat previews for the currently logged-in user.
+     *
+     * Depending on the user's role (Doctor, Patient, or Admin), this function accesses the correct Firestore
+     * path, retrieves the list of chat IDs, and then initiates loading of chat details.
+     *
+     * Triggers [onChatsLoaded] callback with an empty list if no chats are found or an error occurs.
+     */
     fun loadChatPreviews() {
         val role = UserSession.currentUser?.role ?: return
         val path = when (role) {
@@ -39,6 +47,19 @@ class ChatListPresenter(
             }
     }
 
+    /**
+     * Fetches detailed chat metadata for each provided chat ID.
+     *
+     * For each chat:
+     * - Retrieves participants and their names
+     * - Loads the last message and timestamp
+     * - Calculates unread message count for the current user
+     * - Identifies the other participant in the conversation
+     *
+     * The collected chat previews are sorted by most recent timestamp and returned via [onChatsLoaded].
+     *
+     * @param chatIds A list of chat document IDs to be queried from the Firestore "chats" collection.
+     */
     private fun fetchChatDetails(chatIds: List<String>) {
         val previews = mutableListOf<ChatPreview>()
         val collection = db.collection("chats")
@@ -105,6 +126,21 @@ class ChatListPresenter(
         }
     }
 
+    /**
+     * Data class representing a chat preview item.
+     *
+     * Used for displaying chat summaries in a UI list. Includes metadata about participants,
+     * the last message, timestamp, and unread message count.
+     *
+     * @property chatId The unique identifier of the chat.
+     * @property user1Id The ID of the first participant.
+     * @property user1Name The name of the first participant.
+     * @property user2Id The ID of the second participant or the "other" user for the current user.
+     * @property user2Name The name of the second participant or the "other" user for the current user.
+     * @property lastMessage The last sent message in the chat.
+     * @property timestamp The timestamp of the last message, if available.
+     * @property unreadCount The number of unread messages for the current user.
+     */
     data class ChatPreview(
         val chatId: String,
         val user1Id: String,

@@ -10,7 +10,12 @@ import java.util.Date
 class MedicalHistoryPresenter(private val view: MedicalHistoryView) {
 
     private val db = FirebaseFirestore.getInstance()
-
+    /**
+     * Loads all patients from the Firestore `patients` collection.
+     *
+     * The resulting list of [Patient] objects is passed to [MedicalHistoryView.showPatientList].
+     * On failure, [MedicalHistoryView.showError] is called with an error message.
+     */
     fun loadAllPatients() {
         db.collection("patients")
             .get()
@@ -24,7 +29,14 @@ class MedicalHistoryPresenter(private val view: MedicalHistoryView) {
                 view.showError("Failed to load patients")
             }
     }
-
+    /**
+     * Loads all bookings for a specific patient, sorted in reverse chronological order by booking time.
+     *
+     * The results are mapped to [Booking] objects along with their Firestore document IDs
+     * and passed to [MedicalHistoryView.showBookings].
+     *
+     * @param patientId The Firestore document ID of the patient.
+     */
     fun loadBookings(patientId: String) {
         db.collection("patients")
             .document(patientId)
@@ -42,7 +54,16 @@ class MedicalHistoryPresenter(private val view: MedicalHistoryView) {
                 view.showError("Failed to load bookings")
             }
     }
-
+    /**
+     * Cancels a booking for a given patient and booking ID.
+     *
+     * This function performs a lookup to gather required metadata (doctor ID, date, etc.)
+     * and then delegates the cancellation to an internal transaction function.
+     *
+     * @param patientId The ID of the patient who owns the booking.
+     * @param bookingId The Firestore document ID of the booking.
+     * @param bookedAt The original booking timestamp (currently unused but may assist with audit logging).
+     */
     fun cancelBooking(patientId: String, bookingId: String, bookedAt: Timestamp?) {
 
         val bookingRef = db.collection("patients")
@@ -68,7 +89,16 @@ class MedicalHistoryPresenter(private val view: MedicalHistoryView) {
                 view.showError("Failed to fetch booking: \${it.message}")
             }
     }
-
+    /**
+     * Cancels a booking for a given patient and booking ID.
+     *
+     * This function performs a lookup to gather required metadata (doctor ID, date, etc.)
+     * and then delegates the cancellation to an internal transaction function.
+     *
+     * @param patientId The ID of the patient who owns the booking.
+     * @param bookingId The Firestore document ID of the booking.
+     * @param bookedAt The original booking timestamp (currently unused but may assist with audit logging).
+     */
     private fun cancelBookingInternal(patientId: String, bookingId: String, date: String, specialization: String, doctorId: String, hour: String) {
         val timeslotRef = db.collection("appointments").document(date)
             .collection(specialization).document(doctorId)

@@ -14,7 +14,28 @@ class ChatListActivity : AppCompatActivity() {
 
     private lateinit var presenter: ChatListPresenter
     private lateinit var adapter: ChatPreviewAdapter
-
+    /**
+     * Called when the activity is starting. Sets up the Chat List screen,
+     * displaying a list of recent chats and allowing the user to tap on one to open the conversation.
+     *
+     * Responsibilities:
+     * - Initializes a [ChatPreviewAdapter] with a callback that launches [ChatActivity] when a chat is clicked.
+     * - Configures the RecyclerView to display the list of chat previews.
+     * - Initializes a [ChatListPresenter] to fetch and observe chat data.
+     * - Loads chat previews and updates the UI or shows a Toast in case of an error.
+     *
+     * Layout: `activity_chat_list.xml`
+     *
+     * Chat items are displayed using:
+     * - [ChatPreviewAdapter]
+     * - Item layout: `item_chat_preview.xml`
+     *
+     * Navigation:
+     * - When a chat is selected, it launches [ChatActivity] with `chatId` and `otherUserId` passed via intent.
+     *
+     * @param savedInstanceState If the activity is being re-initialized after previously being shut down,
+     * this contains the data it most recently supplied.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat_list)

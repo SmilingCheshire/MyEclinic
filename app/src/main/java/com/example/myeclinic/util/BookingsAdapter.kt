@@ -11,13 +11,25 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.myeclinic.R
 import com.example.myeclinic.model.Booking
 import java.util.Date
-
+/**
+ * Adapter for displaying a list of bookings in a RecyclerView.
+ *
+ * Each booking item shows the doctor name, date, time, and status.
+ * Bookings that are in the future and have status `"booked"` will allow cancellation.
+ *
+ * @property onCancelClick A callback function triggered when the "Cancel" button is pressed.
+ *                         Receives the [Booking] and its corresponding Firestore document ID.
+ */
 class BookingsAdapter(
     private val onCancelClick: (Booking, String) -> Unit
 ) : RecyclerView.Adapter<BookingsAdapter.BookingViewHolder>() {
 
     private val bookings = mutableListOf<Pair<Booking, String>>() // Pair<Booking, bookingId>
-
+    /**
+     * Replaces the current list of bookings with a new list and refreshes the view.
+     *
+     * @param newBookings A list of pairs where each pair contains a [Booking] and its Firestore ID.
+     */
     fun submitList(newBookings: List<Pair<Booking, String>>) {
         bookings.clear()
         bookings.addAll(newBookings)
@@ -36,14 +48,24 @@ class BookingsAdapter(
 
     override fun getItemCount(): Int = bookings.size
 
-
+    /**
+     * ViewHolder class for displaying individual booking information.
+     *
+     * Dynamically adjusts styling and visibility based on booking status and time.
+     */
     inner class BookingViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val doctorName: TextView = itemView.findViewById(R.id.doctorNameText)
         private val date: TextView = itemView.findViewById(R.id.dateText)
         private val time: TextView = itemView.findViewById(R.id.timeText)
         private val status: TextView = itemView.findViewById(R.id.statusText)
         private val cancelBtn: Button = itemView.findViewById(R.id.cancelBookingBtn)
-
+        /**
+         * Binds booking data to the view, including visibility of cancel button
+         * and styling based on whether the appointment is active or past.
+         *
+         * @param booking The booking data to display.
+         * @param bookingId The Firestore document ID associated with this booking.
+         */
         fun bind(booking: Booking, bookingId: String) {
             doctorName.text = booking.doctorName
             date.text = booking.date
@@ -88,7 +110,9 @@ class BookingsAdapter(
             }
         }
     }
-
+        /**
+         * Utility class for optimizing RecyclerView updates via DiffUtil.
+         */
         class DiffCallback : DiffUtil.ItemCallback<Booking>() {
         override fun areItemsTheSame(oldItem: Booking, newItem: Booking): Boolean =
             oldItem.bookedAt == newItem.bookedAt

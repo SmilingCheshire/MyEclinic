@@ -26,7 +26,14 @@ class ChatPresenter(
 ) {
     private val db = FirebaseFirestore.getInstance()
     private val senderId = UserSession.currentUser?.userId ?: ""
-
+    /**
+     * Loads all messages from the current chat and listens for real-time updates.
+     *
+     * Messages are retrieved in chronological order. After loading, all unseen messages
+     * sent to the current user are marked as seen. The result is passed to [onMessagesLoaded].
+     *
+     * In case of errors, the [onError] callback is invoked.
+     */
     fun loadMessages() {
         db.collection("chats")
             .document(chatId)
@@ -52,7 +59,15 @@ class ChatPresenter(
                 onMessagesLoaded(messages)
             }
     }
-
+    /**
+     * Sends a message in the current chat to the other user.
+     *
+     * The message is saved in Firestore under the "messages" subcollection,
+     * and metadata such as unread count and last message preview are updated.
+     * If needed, initializes the chat document and sends an FCM push notification.
+     *
+     * @param text The content of the message to send.
+     */
     fun sendMessage(text: String) {
         if (senderId.isBlank()) {
             onError("Invalid sender")
@@ -114,7 +129,17 @@ class ChatPresenter(
                 onError(it.message ?: "Failed to send message")
             }
     }
-
+    /**
+     * Searches for the recipient's FCM token and sends a push notification via a Cloud Function.
+     *
+     * It checks across "patients", "doctors", and "admins" collections until it finds the correct token.
+     *
+     * @param otherUserId The recipient's user ID.
+     * @param text The content of the message to be used in the push.
+     * @param senderName The display name of the message sender.
+     * @param chatId The ID of the chat.
+     * @param senderId The sender's user ID.
+     */
     fun findAndSendPush(otherUserId: String, text: String, senderName: String, chatId: String, senderId: String) {
         val possiblePaths = listOf("patients", "doctors", "admins")
         val db = FirebaseFirestore.getInstance()
@@ -162,7 +187,11 @@ class ChatPresenter(
 
         tryNext(0)
     }
-
+    /**
+     * Marks all unseen messages in the current chat (sent to the current user) as seen.
+     *
+     * Also resets the `unreadCounts` value for the current user to 0 in the main chat document.
+     */
     private fun markMessagesAsSeen() {
         val messagesRef = db.collection("chats")
             .document(chatId)
@@ -184,7 +213,11 @@ class ChatPresenter(
                     .update("unreadCounts.$senderId", 0)
             }
     }
-
+    /**
+     * Registers the chat reference in both the sender's and recipient's user document.
+     *
+     * Ensures that both users have access to this chat under their personal "chats" array.
+     */
     private fun registerChatReference() {
         val senderRole = UserSession.currentUser?.role ?: return
 
@@ -211,7 +244,14 @@ class ChatPresenter(
             }
         }
     }
-
+    /**
+     * Represents a single chat message exchanged between users.
+     *
+     * @property text The textual content of the message.
+     * @property senderId The ID of the message sender.
+     * @property senderName The name of the sender displayed in the chat.
+     * @property timestamp The time the message was sent.
+     */
     data class Message(
         val text: String,
         val senderId: String,

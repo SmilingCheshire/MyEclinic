@@ -18,7 +18,23 @@ class DoctorListActivity : AppCompatActivity(), DoctorView {
     private lateinit var adapter: ArrayAdapter<String>
     private val doctorList = mutableListOf<Doctor>()
     private lateinit var specialization: String
-
+    /**
+     * Initializes the Doctor List screen.
+     *
+     * This activity displays a list of doctors filtered by a specialization provided via intent extras.
+     * It allows users to:
+     * - View names of doctors with the given specialization.
+     * - Tap on a doctor to open their profile in [AnotherProfileActivity].
+     *
+     * Workflow:
+     * - Loads the layout `activity_doctor_list`.
+     * - Initializes the [ListView] and sets a simple text adapter.
+     * - Retrieves the specialization string from the intent.
+     * - Uses [DoctorListPresenter] to load doctors for that specialization.
+     * - Handles list item clicks by starting [AnotherProfileActivity] with doctor details.
+     *
+     * @param savedInstanceState The previously saved instance state, if available.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_doctor_list)
@@ -41,7 +57,14 @@ class DoctorListActivity : AppCompatActivity(), DoctorView {
             startActivity(intent)
         }
     }
-
+    /**
+     * Updates the UI with a list of doctors retrieved from the presenter.
+     *
+     * Clears the current doctor list, stores the new one, and updates the adapter to display
+     * each doctor's name in the associated ListView or UI component.
+     *
+     * @param doctors A list of [Doctor] objects representing the filtered or fetched doctors.
+     */
     override fun showDoctors(doctors: List<Doctor>) {
         doctorList.clear()
         doctorList.addAll(doctors)
@@ -49,7 +72,13 @@ class DoctorListActivity : AppCompatActivity(), DoctorView {
         adapter.addAll(doctors.map { "${it.name}" })
         adapter.notifyDataSetChanged()
     }
-
+    /**
+     * Displays an error message to the user in a Toast.
+     *
+     * Commonly used to notify about issues like network failures or empty results.
+     *
+     * @param message The error message to display.
+     */
     override fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }

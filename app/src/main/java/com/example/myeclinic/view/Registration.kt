@@ -16,7 +16,28 @@ class Registration : AppCompatActivity(), RegistrationView {
     private lateinit var etRepeatPassword: EditText
     private lateinit var etUsername: EditText
     private lateinit var etContactNumber: EditText
-
+    /**
+     * Called when the `Registration` activity is created.
+     *
+     * This activity allows users to register for the application. The following user inputs are collected:
+     * - Username
+     * - Email
+     * - Password
+     * - Repeated password (confirmation)
+     * - Contact number
+     *
+     * Main actions:
+     * - Initializes the input fields and presenter.
+     * - Binds the registration button to trigger the presenter’s `handleRegistration()` method with all inputs.
+     * - Provides a navigation option to return to the login screen.
+     *
+     * Presenter is responsible for handling business logic such as:
+     * - Validating input
+     * - Registering the user in Firebase or another backend
+     * - Navigating to the appropriate dashboard after successful registration
+     *
+     * @param savedInstanceState Previously saved instance state, if the activity is being re-initialized after being shut down.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_registration)
@@ -45,11 +66,20 @@ class Registration : AppCompatActivity(), RegistrationView {
             startActivity(intent)
         }
     }
-
+    /**
+     * Displays a brief toast message to inform the user of an error.
+     *
+     * @param message The error message to be displayed.
+     */
     override fun showError(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
-
+    /**
+     * Navigates the user to the patient dashboard screen.
+     *
+     * This method starts the [PatientActivity] and finishes the current activity to prevent the user
+     * from returning to the previous screen via the back button.
+     */
     override fun navigateToPatientDashboard() {
         startActivity(Intent(this, PatientActivity::class.java))
         finish()

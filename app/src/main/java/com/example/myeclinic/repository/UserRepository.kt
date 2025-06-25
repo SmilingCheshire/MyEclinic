@@ -9,7 +9,20 @@ import com.google.firebase.firestore.FirebaseFirestore
 class UserRepository {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val database = FirebaseFirestore.getInstance()
-
+    /**
+     * Registers a new user (default role: Patient) using Firebase Authentication and saves user details to Firestore.
+     *
+     * After successful authentication, a new [Patient] object is created and stored in the `patients` collection.
+     *
+     * @param email The user's email address.
+     * @param password The password for the new user.
+     * @param name The full name of the user.
+     * @param contactNumber The user's contact number.
+     * @param role The user's role (default is "Patient").
+     * @param callback Callback invoked after registration attempt:
+     *   - `true` and `null` on success,
+     *   - `false` and an error message on failure.
+     */
     fun registerUser(
         email: String,
         password: String,
@@ -40,7 +53,18 @@ class UserRepository {
                 }
             }
     }
-
+    /**
+     * Logs in a user with Firebase Authentication and retrieves their profile from Firestore.
+     *
+     * The method checks sequentially in `patients`, `doctors`, and `admins` collections
+     * to locate the authenticated user's data.
+     *
+     * @param email The user's email address.
+     * @param password The password to authenticate with.
+     * @param callback Callback invoked after login attempt:
+     *   - On success: `true`, the [User] object, and `null`
+     *   - On failure: `false`, `null`, and an error message
+     */
     fun loginUser(email: String, password: String, callback: (Boolean, User?, String?) -> Unit) {
         auth.signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
@@ -83,7 +107,15 @@ class UserRepository {
                 }
             }
     }
-
+    /**
+     * Updates the FCM device token for a user in the appropriate Firestore collection.
+     *
+     * The update is role-sensitive and writes to the correct document based on the user's role.
+     *
+     * @param userId The Firestore document ID of the user.
+     * @param token The FCM device token to store.
+     * @param role The user's role ("Patient", "Doctor", or "Admin").
+     */
     fun updateUserToken(userId: String, token: String, role: String) {
         val collection = when (role) {
             "Patient" -> "patients"

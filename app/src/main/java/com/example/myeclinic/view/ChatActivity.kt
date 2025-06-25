@@ -19,7 +19,26 @@ class ChatActivity : AppCompatActivity() {
     private lateinit var input: EditText
     private lateinit var chatId: String
     private lateinit var otherUserId: String
-
+    /**
+     * Initializes the ChatActivity screen where users can view and send messages.
+     *
+     * Responsibilities:
+     * - Retrieves the `chatId` and `otherUserId` from the incoming Intent. If missing, the activity closes.
+     * - Displays a toast message if the user is viewing the chat as an admin (monitoring mode).
+     * - Sets up the RecyclerView with the [MessageAdapter] to display chat messages.
+     * - Initializes the [ChatPresenter] with callbacks for loading messages and handling errors.
+     * - Automatically scrolls to the most recent message once loaded.
+     * - Listens for send button clicks and triggers message sending via the presenter.
+     *
+     * Layout resource: `activity_chat.xml`
+     *
+     * Expected Intent extras:
+     * - `"chatId"`: Unique identifier for the chat.
+     * - `"otherUserId"`: The ID of the user the current user is chatting with.
+     * - `"adminView"` (optional): Boolean indicating if the current user is viewing as an admin.
+     *
+     * @param savedInstanceState The saved state of the activity, if any.
+     */
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_chat)

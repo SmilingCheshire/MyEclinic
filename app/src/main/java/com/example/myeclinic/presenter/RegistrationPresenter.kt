@@ -1,14 +1,27 @@
 package com.example.myeclinic.presenter
 
 import android.util.Patterns
-import com.example.myeclinic.model.Doctor
-import com.example.myeclinic.repository.DoctorRepository
 import com.example.myeclinic.repository.UserRepository
-import com.google.firebase.auth.FirebaseAuth
 
 class RegistrationPresenter(private val view: RegistrationView) {
     private val userRepository = UserRepository()
-
+    /**
+     * Validates the registration form and attempts to register a new patient.
+     *
+     * This method checks:
+     * - All fields are non-empty
+     * - Email is in correct format
+     * - Passwords match
+     *
+     * If valid, it registers the user as a "Patient" using the [UserRepository],
+     * and navigates to the patient dashboard upon success.
+     *
+     * @param email The user's email address.
+     * @param password The user's chosen password.
+     * @param repeatPassword Confirmation of the user's password.
+     * @param name The full name of the patient.
+     * @param contactNumber The patient's contact number.
+     */
     fun handleRegistration(
         email: String,
         password: String,
@@ -47,7 +60,9 @@ class RegistrationPresenter(private val view: RegistrationView) {
         }
     }
 }
-
+/**
+ * View interface for registration-related UI feedback.
+ */
 interface RegistrationView {
     fun showError(message: String)
     fun navigateToPatientDashboard()
